@@ -1,6 +1,7 @@
-import { useEffect, useRef } from "react";
+import { ReactNode, useEffect, useRef } from "react";
 
 type Vector2 = [number, number];
+type Polygon = [Vector2, Vector2, Vector2, ...Vector2[]];
 
 const PIXEL_SIZE = 4;
 const MAX_BYTE = 255;
@@ -21,10 +22,72 @@ const setGrayValue = function(
   imageData.data[i + 3] = MAX_BYTE;
 };
 
-export default function () {
-    const canvasEl = useRef<HTMLCanvasElement>(null);
+const intersectionByY = function(
+  [x0, y0]: Vector2,
+  [x1, y1]: Vector2,
+  y: number,
+): number | null {
+  const minY = Math.min(y0, y1);
+  const maxY = Math.max(y0, y1);
 
-    const size: Vector2 = [400, 400];
+  if (!(minY <= y && y <= maxY)) return null;
+
+  const scale = (y - y0) / (y1 - y0);
+
+  return (x1 - x0) * scale + x0;
+};
+
+const polygonToLines = function(polygon: Polygon): [Vector2, Vector2][] {
+  if (polygon.length < 3) throw new Error("polygon length < 3!");
+
+  return [
+    ...range(polygon.length - 1).map((i) => [polygon[i], polygon[i+1]] as [Vector2, Vector2]),
+    [polygon[polygon.length - 1], polygon[0]],
+  ];
+};
+
+const partition = function<T>(arr: T[], n: number): T[][] {
+  let res: T[][] = [];
+
+  for (let i = 0; i < arr.length; i+=n) {
+    res.push(arr.slice(i, Math.min(arr.length, i + n)));
+  }
+
+  return res;
+};
+
+// FIXME: This algorithm is broken
+const algorithm = function(
+  imageData: ImageData,
+  polygon: Polygon,
+) {
+  const POLYGON_VALUE = 0;
+
+  range(imageData.height).forEach((row) => {
+    const intersections = polygonToLines(polygon)
+      .map(([point0, point1]) => intersectionByY(point0, point1, row))
+      .filter((item) => item !== null)
+      .sort();
+
+    console.assert(intersections.length % 2 === 0, "assertions.length % 2 === 0");
+
+    partition(intersections, 2).forEach(([x0, x1]) => {
+      for (let x = x0; x < x1; x++) {
+        const i = Math.floor(row * imageData.width + x);
+        setGrayValue(imageData, i, POLYGON_VALUE);
+      }
+    });
+  });
+};
+
+const MyPolygonCanvas = function({
+  size,
+  polygon,
+}: {
+  size: Vector2,
+  polygon: Polygon,
+}) {
+    const canvasEl = useRef<HTMLCanvasElement>(null);
 
     useEffect(() => {
         if (!canvasEl.current) return;
@@ -32,21 +95,69 @@ export default function () {
         if (!ctx) return;
         const imageData = ctx.createImageData(size[0], size[1]);
 
-        const strength = 0;
-
-        range(100).forEach((i) => setGrayValue(imageData, i, strength));
+        algorithm(imageData, polygon);
 
         ctx.putImageData(imageData, 0, 0);
-    }, []);
+    }, [size, polygon]);
+
+    return (
+        <canvas
+            width={size[0]}
+            height={size[1]}
+            ref={canvasEl}
+        />
+    );
+};
+
+const Card = function({
+  title,
+  children,
+}: {
+  title: string,
+  children: ReactNode,
+}) {
+    return (
+        <div className="bg-yellow-100 flex flex-col gap-2">
+            <h3 className="bg-yellow-200 p-2">{title}</h3>
+            {children}
+        </div>
+    );
+};
+
+export default function () {
+    const size: Vector2 = [400, 400];
+
+    const polygon: Polygon = [
+        [10, 0],
+        [1, 200],
+        [320, 200],
+        [400, 80],
+    ];
 
     return (
         <div>
-            <h2>Uzdevums (3d)</h2>
-            <canvas
-                width={size[0]}
-                height={size[1]}
-                ref={canvasEl}
-            />
+            <h2 className="text-4xl mb-4">Uzdevums (3d)</h2>
+
+            <div className="flex gap-4">
+                <Card title="My implementation">
+                    <MyPolygonCanvas size={size} polygon={polygon} />
+                </Card>
+                <Card title="SVG reference">
+                    <svg
+                        className="fill-black"
+                        width={size[0]}
+                        height={size[1]}
+                    >
+                        <polygon points={polygon.map(([x, y]) => `${x},${y}`).join(", ")} />
+                    </svg>
+                </Card>
+                <Card title="Polygon info">
+                <div className="px-4">
+                  <div className="font-bold text-lg">Points:</div>
+                  {polygon.map(([x, y]) => <div>{`[${x}, ${y}]`}</div>)}
+                </div>
+                </Card>
+            </div>
         </div>
     );
 };
