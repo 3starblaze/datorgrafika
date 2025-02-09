@@ -124,39 +124,76 @@ const Card = function({
     );
 };
 
-export default function () {
-    const size: Vector2 = [400, 400];
+type Example = {
+  title: string,
+  canvasSize: Vector2,
+  polygon: Polygon,
+};
 
-    const polygon: Polygon = [
+const exampleRegistry: Example[] = [
+  {
+    title: "Axis-aligned Square",
+    canvasSize: [400, 400],
+    polygon: [
+      [10, 10],
+      [390, 10],
+      [390, 390],
+      [10, 390],
+    ]
+  },
+  {
+    title: "rot45 Square",
+    canvasSize: [400, 400],
+    polygon: [
+      [200, 10],
+      [390, 200],
+      [200, 390],
+      [10, 200],
+    ]
+  },
+  {
+    title: "Random 0",
+    canvasSize: [400, 400],
+    polygon: [
         [10, 0],
         [1, 200],
         [320, 200],
         [400, 80],
-    ];
+    ]
+  },
+];
 
+export default function () {
     return (
         <div>
             <h2 className="text-4xl mb-4">Uzdevums (3d)</h2>
 
-            <div className="flex gap-4">
-                <Card title="My implementation">
-                    <MyPolygonCanvas size={size} polygon={polygon} />
-                </Card>
-                <Card title="SVG reference">
-                    <svg
-                        className="fill-black"
-                        width={size[0]}
-                        height={size[1]}
-                    >
-                        <polygon points={polygon.map(([x, y]) => `${x},${y}`).join(", ")} />
-                    </svg>
-                </Card>
-                <Card title="Polygon info">
-                <div className="px-4">
-                  <div className="font-bold text-lg">Points:</div>
-                  {polygon.map(([x, y]) => <div>{`[${x}, ${y}]`}</div>)}
-                </div>
-                </Card>
+            <div className="flex flex-col gap-4">
+                {exampleRegistry.map(({ title, canvasSize, polygon }) => (
+                    <div className="flex gap-4">
+                        <Card title="My implementation">
+                            <MyPolygonCanvas size={canvasSize} polygon={polygon} />
+                        </Card>
+                        <Card title="SVG reference">
+                            <svg
+                                className="fill-black"
+                                width={canvasSize[0]}
+                                height={canvasSize[1]}
+                            >
+                                <polygon points={polygon.map(([x, y]) => `${x},${y}`).join(", ")} />
+                            </svg>
+                        </Card>
+                        <Card title="Polygon info">
+                            <div className="px-4 flex flex-col gap-4">
+                                <div className="text-xl font-bold">{title}</div>
+                                <div>
+                                  <div className="text-lg font-bold">Points:</div>
+                                  {polygon.map(([x, y]) => <div>{`[${x}, ${y}]`}</div>)}
+                                </div>
+                            </div>
+                        </Card>
+                    </div>
+                ))}
             </div>
         </div>
     );
