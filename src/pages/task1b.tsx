@@ -117,17 +117,20 @@ export default function () {
         const ctx = canvasEl.current.getContext("2d");
         if (!ctx) return;
 
+
+        const velocityStrength = 20.0;
+
         const particleSystem: ParticleSystem = {
             lifetime: 2.0,
             linearVelocityGenerator: (seed) => {
                 const angle = seed * 2 * Math.PI;
                 return {
-                    x: 50 * Math.cos(angle),
-                    y: -50 * Math.sin(angle),
+                    x: velocityStrength * Math.cos(angle),
+                    y: -velocityStrength * Math.sin(angle),
                 };
             },
             maxCount: 100,
-            origin: {x: 100, y: 100},
+            origin: { x: 100, y: 100 },
         };
 
         const state = initParticleSystemState(particleSystem);
@@ -136,8 +139,11 @@ export default function () {
             y: canvasEl.current.height,
         };
 
-        const callback = (delta: number) => {
-            tick(state, delta / 1000);
+        let now = performance.now();
+        const callback = (timestamp: number) => {
+            const delta = timestamp - now;
+            now = timestamp;
+            tick(state, delta);
             draw(state, size, ctx);
             requestAnimationFrame(callback);
         };
