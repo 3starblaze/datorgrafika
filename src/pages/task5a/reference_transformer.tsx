@@ -10,6 +10,9 @@ const impl: Transformer = {
     translateToMatrix({ x, y, z }) {
         return (new DOMMatrix()).translate(x, y, z);
     },
+    scaleToMatrix({ x, y, z }) {
+        return (new DOMMatrix()).scale(x, y, z);
+    },
 };
 
 export default impl;

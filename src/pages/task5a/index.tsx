@@ -21,6 +21,17 @@ const testCases: TestCase[] = [
             return transformer.translateToMatrix(new DOMPoint(1, 2, 3));
         },
     },
+    {
+        title: "Mērogošana ar (1; 2; 3)",
+        points: [
+            [0, 0, 0],
+            [3.2, 4.5, 7.8],
+            [2.2, 1.3, 4.5],
+        ],
+        matrixProducer(transformer) {
+            return transformer.scaleToMatrix(new DOMPoint(1, 2, 3));
+        },
+    }
 ];
 
 const MatrixCell = function({

@@ -24,6 +24,15 @@ const impl: Transformer = {
         ];
         return new DOMMatrix(args);
     },
+    scaleToMatrix({ x, y, z }) {
+        const args = [
+            x, 0, 0, 0,
+            0, y, 0, 0,
+            0, 0, z, 0,
+            0, 0, 0, 1,
+        ];
+        return new DOMMatrix(args);
+    },
 };
 
 export default impl;
