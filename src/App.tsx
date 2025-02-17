@@ -1,9 +1,9 @@
-import Task1b from "./pages/task1b";
+import Task5a from "./pages/task5a";
 
 function App() {
     return (
         <div className="bg-gray-100 w-screen h-screen p-4">
-            <Task1b />
+            <Task5a />
         </div>
     );
 }
