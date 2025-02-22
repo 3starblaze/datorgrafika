@@ -55,6 +55,24 @@ const testCases: TestCase[] = [
             return transformer.skew2DY(5.0);
         },
     },
+    {
+        title: "X ass rotācija par 30 grādiem",
+        matrixProducer(transformer) {
+            return transformer.rotateX(Math.PI / 6);
+        }
+    },
+    {
+        title: "Y ass rotācija par 30 grādiem",
+        matrixProducer(transformer) {
+            return transformer.rotateY(Math.PI / 6);
+        }
+    },
+    {
+        title: "Z ass rotācija par 30 grādiem",
+        matrixProducer(transformer) {
+            return transformer.rotateZ(Math.PI / 6);
+        }
+    },
 ];
 
 // NOTE: Algorithm performance can be improved by comparing all 16 numbers, this will suffice for

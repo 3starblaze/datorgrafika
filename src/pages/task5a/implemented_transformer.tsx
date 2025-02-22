@@ -33,6 +33,39 @@ const impl: Transformer = {
         ];
         return new DOMMatrix(args);
     },
+    rotateX(angle) {
+        const c = Math.cos(angle);
+        const s = Math.sin(angle);
+
+        return new DOMMatrix([
+            1, 0, 0,  0,
+            0, c, -s, 0,
+            0, s, c,  0,
+            0, 0, 0,  1,
+        ]);
+    },
+    rotateY(angle) {
+        const c = Math.cos(angle);
+        const s = Math.sin(angle);
+
+        return new DOMMatrix([
+            c, 0, -s, 0,
+            0, 1, 0,  0,
+            s, 0, c,  0,
+            0, 0, 0,  1,
+        ]);
+    },
+    rotateZ(angle) {
+        const c = Math.cos(angle);
+        const s = Math.sin(angle);
+
+        return new DOMMatrix([
+            c, -s, 0, 0,
+            s, c,  0, 0,
+            s, 0,  1, 0,
+            0, 0,  0, 1,
+        ]);
+    },
     skewXY(a, b) {
         return (new DOMMatrix([
             1, 0, a, 0,

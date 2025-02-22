@@ -13,6 +13,15 @@ const impl: Transformer = {
     scaleToMatrix({ x, y, z }) {
         return (new DOMMatrix()).scale(x, y, z);
     },
+    rotateX(angle) {
+        return (new DOMMatrix).rotate(angle, 0, 0);
+    },
+    rotateY(angle) {
+        return (new DOMMatrix).rotate(0, angle, 0);
+    },
+    rotateZ(angle) {
+        return (new DOMMatrix).rotate(0, 0, angle);
+    },
     skewXY(a, b) {
         return (new DOMMatrix([
             1, 0, a, 0,
