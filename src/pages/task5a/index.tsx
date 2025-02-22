@@ -2,36 +2,28 @@ import { Transformer } from "./transformer_spec";
 import implementedTransformer from "./implemented_transformer";
 import referenceTransformer from "./implemented_transformer";
 import { ReactNode } from "react";
+import { points as importedPoints } from "./points";
+
+const points = importedPoints.slice(0, 5);
 
 interface TestCase {
     title: string,
-    points: [number, number, number][],
     matrixProducer: (transformer: Transformer) => DOMMatrix,
 };
 
 const testCases: TestCase[] = [
     {
         title: "Translācija ar (1; 2; 3)",
-        points: [
-            [0, 0, 0],
-            [3.2, 4.5, 7.8],
-            [2.2, 1.3, 4.5],
-        ],
         matrixProducer(transformer) {
             return transformer.translateToMatrix(new DOMPoint(1, 2, 3));
         },
     },
     {
         title: "Mērogošana ar (1; 2; 3)",
-        points: [
-            [0, 0, 0],
-            [3.2, 4.5, 7.8],
-            [2.2, 1.3, 4.5],
-        ],
         matrixProducer(transformer) {
             return transformer.scaleToMatrix(new DOMPoint(1, 2, 3));
         },
-    }
+    },
 ];
 
 const MatrixCell = function({
@@ -40,7 +32,7 @@ const MatrixCell = function({
     value: number,
 }) {
     return (
-        <div className="flex justify-center items-center">
+        <div className="flex">
             <div className="">{value}</div>
         </div>
     );
@@ -52,7 +44,7 @@ const MatrixDisplay = function({
     matrix: DOMMatrix,
 }): ReactNode {
     return (
-        <div className="flex">
+        <div className="flex items-start">
             <div className="grid grid-cols-4 gap-1">
                 <MatrixCell value={m.m11} />
                 <MatrixCell value={m.m12} />
@@ -86,7 +78,7 @@ const PointDisplay = function({
 const reportTestCase = function(testCase: TestCase) {
     const referenceMatrix = testCase.matrixProducer(referenceTransformer);
     const implementedMatrix = testCase.matrixProducer(implementedTransformer);
-    const domPoints = testCase.points.map(([x, y, z]) => new DOMPoint(x, y, z));
+    const domPoints = points.map(([x, y, z]) => new DOMPoint(x, y, z));
     const referencePoints = domPoints.map(
         (p) => referenceTransformer.transformPoint(p, referenceMatrix)
     );
@@ -94,14 +86,15 @@ const reportTestCase = function(testCase: TestCase) {
         (p) => implementedTransformer.transformPoint(p, implementedMatrix)
     );
 
-    return [
-        <div className="font-bold">{testCase.title}</div>,
-        <div>{domPoints.map((p) => <PointDisplay point={p} />)}</div>,
-        <MatrixDisplay matrix={referenceMatrix} />,
-        <MatrixDisplay matrix={implementedMatrix} />,
-        <div>{referencePoints.map((p) => <PointDisplay point={p} />)}</div>,
-        <div>{implementedPoints.map((p) => <PointDisplay point={p} />)}</div>,
-    ];
+    return (
+        <>
+            <div className="font-bold">{testCase.title}</div>
+            <MatrixDisplay matrix={referenceMatrix} />
+            <MatrixDisplay matrix={implementedMatrix} />
+            <div>{referencePoints.map((p) => <PointDisplay point={p} />)}</div>
+            <div>{implementedPoints.map((p) => <PointDisplay point={p} />)}</div>
+        </>
+    );
 };
 
 
@@ -109,22 +102,15 @@ export default function () {
     return (
         <div>
             <h2 className="text-4xl mb-4">Uzdevums (5a)</h2>
-            <div className="grid grid-cols-6 gap-2">
+            <div className="grid grid-cols-5 gap-2">
                 <>
-                    <div className="font-bold text-lg">Title</div>
-                    <div className="font-bold text-lg">Input points</div>
-                    <div className="font-bold text-lg">Reference matrix</div>
-                    <div className="font-bold text-lg">Implemented matrix</div>
-                    <div className="font-bold text-lg">Output reference points</div>
-                    <div className="font-bold text-lg">Output implemented points</div>
+                    <div className="font-bold text-lg">Gadījums</div>
+                    <div className="font-bold text-lg">References matrica</div>
+                    <div className="font-bold text-lg">Implementētā matrica</div>
+                    <div className="font-bold text-lg">Izvadītie references punkti</div>
+                    <div className="font-bold text-lg">Izvadītie implementācijas punkti</div>
                 </>
-                {testCases.map((testCase) => {
-                    return (
-                        <>
-                            {reportTestCase(testCase).map((s) => <div>{s}</div>)}
-                        </>
-                    );
-                })}
+                {testCases.map((testCase) => reportTestCase(testCase))}
             </div>
         </div>
     );
