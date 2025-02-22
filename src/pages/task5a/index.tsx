@@ -3,6 +3,7 @@ import implementedTransformer from "./implemented_transformer";
 import referenceTransformer from "./implemented_transformer";
 import { ReactNode } from "react";
 import { points as importedPoints } from "./points";
+import { cn } from "@/lib/utils";
 
 const points = importedPoints.slice(0, 5);
 
@@ -26,7 +27,13 @@ const testCases: TestCase[] = [
     },
 ];
 
-const MatrixCell = function({
+// NOTE: Algorithm performance can be improved by comparing all 16 numbers, this will suffice for
+// now
+const matrixEq = function(a: DOMMatrix, b: DOMMatrix): boolean {
+    return JSON.stringify(a.toJSON()) === JSON.stringify(b.toJSON());
+};
+
+const MatrixCell = function ({
     value
 }: {
     value: number,
@@ -86,11 +93,17 @@ const reportTestCase = function(testCase: TestCase) {
         (p) => implementedTransformer.transformPoint(p, implementedMatrix)
     );
 
+    const matricesMatch = matrixEq(referenceMatrix, implementedMatrix);
+
     return (
         <>
             <div className="font-bold">{testCase.title}</div>
-            <MatrixDisplay matrix={referenceMatrix} />
-            <MatrixDisplay matrix={implementedMatrix} />
+            <div className={cn(matricesMatch ? "bg-green-100" : "bg-red-100")}>
+                <MatrixDisplay matrix={referenceMatrix} />
+            </div>
+            <div className={cn(matricesMatch ? "bg-green-100" : "bg-red-100")}>
+                <MatrixDisplay matrix={implementedMatrix} />
+            </div>
             <div>{referencePoints.map((p) => <PointDisplay point={p} />)}</div>
             <div>{implementedPoints.map((p) => <PointDisplay point={p} />)}</div>
         </>
