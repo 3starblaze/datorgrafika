@@ -25,11 +25,41 @@ const testCases: TestCase[] = [
             return transformer.scaleToMatrix(new DOMPoint(1, 2, 3));
         },
     },
+    {
+        title: "Slīpā nobīde paralēli xy-plaknei (a = 3.4, b = 2.7)",
+        matrixProducer(transformer) {
+            return transformer.skewXY(3.4, 2.7);
+        },
+    },
+    {
+        title: "Slīpā nobīde paralēli yz-plaknei (a = 14.2, b = 11.0)",
+        matrixProducer(transformer) {
+            return transformer.skewYZ(14.2, 11.0);
+        },
+    },
+    {
+        title: "Slīpā nobīde paralēli xz-plaknei (a = 39.7, b = 94.1)",
+        matrixProducer(transformer) {
+            return transformer.skewYZ(39.7, 94.1);
+        },
+    },
+    {
+        title: "2D slīpā nobīde X-ass virzienā (a = 2.5)",
+        matrixProducer(transformer) {
+            return transformer.skew2DX(2.5);
+        },
+    },
+    {
+        title: "2D slīpā nobīde Y-ass virzienā (a = 5.0)",
+        matrixProducer(transformer) {
+            return transformer.skew2DY(5.0);
+        },
+    },
 ];
 
 // NOTE: Algorithm performance can be improved by comparing all 16 numbers, this will suffice for
 // now
-const matrixEq = function(a: DOMMatrix, b: DOMMatrix): boolean {
+const matrixEq = function (a: DOMMatrix, b: DOMMatrix): boolean {
     return JSON.stringify(a.toJSON()) === JSON.stringify(b.toJSON());
 };
 
