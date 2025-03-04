@@ -5,6 +5,8 @@ import { ReactNode } from "react";
 import { points as importedPoints } from "./points";
 import { cn } from "@/lib/utils";
 
+const formatNumber = (x: number) => x.toFixed(4);
+
 const points = importedPoints.slice(0, 5);
 
 interface TestCase {
@@ -88,7 +90,7 @@ const MatrixCell = function ({
 }) {
     return (
         <div className="flex">
-            <div className="">{value}</div>
+            <div className="">{formatNumber(value)}</div>
         </div>
     );
 };
@@ -100,7 +102,7 @@ const MatrixDisplay = function({
 }): ReactNode {
     return (
         <div className="flex items-start">
-            <div className="grid grid-cols-4 gap-1">
+            <div className="grid grid-cols-4 gap-2">
                 <MatrixCell value={m.m11} />
                 <MatrixCell value={m.m12} />
                 <MatrixCell value={m.m13} />
@@ -123,11 +125,11 @@ const MatrixDisplay = function({
 };
 
 const PointDisplay = function({
-    point,
+    point: { x, y, z },
 }: {
     point: DOMPoint,
 }): ReactNode {
-    return <div>({point.x}; {point.y}; {point.z})</div>;
+    return <div>{[x, y, z].map(formatNumber).join(", ")}</div>;
 };
 
 const reportTestCase = function(testCase: TestCase) {
