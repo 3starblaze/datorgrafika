@@ -1,6 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 import { newParticleSystemState, ParticleSystem, tick } from "./particle_system";
 import { Canvas } from "./render_util";
+import renderUtilString from "./render_util?raw";
+import thisString from ".?raw";
+import particleSystemString from "./particle_system?raw";
+import {
+    Collapsible,
+    CollapsibleContent,
+    CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+
 
 interface Vector2 {
     x: number,
@@ -56,6 +65,27 @@ const makeParticleSystem = function(origin: Vector2): ParticleSystem<MyParticle>
     };
 };
 
+const SourceCode = function({
+    title,
+    contentString,
+}: {
+    title: string,
+    contentString: string,
+}) {
+    return (
+        <Collapsible className="border-l-4 border-black">
+            <CollapsibleTrigger className="px-2 pb-0 font-bold underline cursor-pointer">
+                <span>{title}</span>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+                <pre className="border-b p-4">
+                    {contentString}
+                </pre>
+            </CollapsibleContent>
+        </Collapsible>
+    );
+};
+
 export default function () {
     const [origin, setOrigin] = useState<Vector2>({ x: 40, y: 40});
 
@@ -63,8 +93,23 @@ export default function () {
 
     return (
         <div>
-            <h2 className="text-4xl mb-4">Uzdevums (1b)</h2>
+            <h2 className="text-4xl my-4">Uzdevums (1b)</h2>
 
+            <h3 className="text-2xl my-4">Pirmkods</h3>
+            <SourceCode
+                title="./index"
+                contentString={thisString}
+            />
+            <SourceCode
+                title="./render_util"
+                contentString={renderUtilString}
+            />
+            <SourceCode
+                title="./particle_system"
+                contentString={particleSystemString}
+            />
+
+            <h3 className="text-2xl my-4">Programma darbībā</h3>
             <div>Origin: {JSON.stringify(origin)}</div>
 
             <Canvas
