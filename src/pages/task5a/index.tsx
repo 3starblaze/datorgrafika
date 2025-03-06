@@ -22,6 +22,29 @@ interface TestCase {
     matrixProducer: (transformer: Transformer) => DOMMatrix,
 };
 
+const projectionMatrix = function(
+    depth: number,
+): DOMMatrix {
+    return new DOMMatrix([
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        0, 0, 1 / depth, 0,
+    ]);
+};
+
+const parallelProjectionMatrix = function(
+    projectionDirection: DOMPoint
+): DOMMatrix {
+    const { x, y, z } = projectionDirection;
+    return new DOMMatrix([
+        1, 0, - x/z, 0,
+        0, 1, - y/z, 0,
+        0, 0, 0, 0,
+        0, 0, 0, 1,
+    ]);
+};
+
 const testCases: TestCase[] = [
     {
         title: "Translācija ar (1; 2; 3)",
