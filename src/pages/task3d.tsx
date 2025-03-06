@@ -46,16 +46,6 @@ const polygonToLines = function(polygon: Polygon): [Vector2, Vector2][] {
   ];
 };
 
-const partition = function<T>(arr: T[], n: number): T[][] {
-  let res: T[][] = [];
-
-  for (let i = 0; i < arr.length; i+=n) {
-    res.push(arr.slice(i, Math.min(arr.length, i + n)));
-  }
-
-  return res;
-};
-
 // FIXME: This algorithm is broken
 const algorithm = function(
   imageData: ImageData,
@@ -67,16 +57,19 @@ const algorithm = function(
     const intersections = polygonToLines(polygon)
       .map(([point0, point1]) => intersectionByY(point0, point1, row))
       .filter((item) => item !== null)
-      .sort();
+      .sort((a, b) => a - b); // NOTE: JS converts everything to string before sorting
 
-    console.assert(intersections.length % 2 === 0, "assertions.length % 2 === 0");
-
-    partition(intersections, 2).forEach(([x0, x1]) => {
+    for (let i = 0; i < intersections.length - 1; i += 2) {
+      const x0 = intersections[i];
+      const x1 = intersections[i + 1];
       for (let x = x0; x < x1; x++) {
-        const i = Math.floor(row * imageData.width + x);
-        setGrayValue(imageData, i, POLYGON_VALUE);
+        setGrayValue(
+          imageData,
+          Math.floor(row * imageData.width + x),
+          POLYGON_VALUE
+        );
       }
-    });
+    }
   });
 };
 
