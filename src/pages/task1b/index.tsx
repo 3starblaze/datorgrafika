@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from "react";
-import { newParticleSystemState, ParticleSystem, tick } from "./particle_system";
+import { useState } from "react";
+import { ParticleSystem } from "./particle_system";
 import { Canvas } from "./render_util";
 import renderUtilString from "./render_util?raw";
 import thisString from ".?raw";
@@ -9,6 +9,8 @@ import {
     CollapsibleContent,
     CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import hljs from "highlight.js";
+import "highlight.js/styles/stackoverflow-light.min.css";
 
 
 interface Vector2 {
@@ -72,15 +74,21 @@ const SourceCode = function({
     title: string,
     contentString: string,
 }) {
+    const highlightedElement = hljs.highlight(contentString, {
+        language: "tsx",
+    }).value;
+
     return (
-        <Collapsible className="border-l-4 border-black">
-            <CollapsibleTrigger className="px-2 pb-0 font-bold underline cursor-pointer">
+        <Collapsible
+            className="border-l-4 border-black"
+        >
+            <CollapsibleTrigger
+                className="px-2 pb-0 font-bold underline cursor-pointer"
+            >
                 <span>{title}</span>
             </CollapsibleTrigger>
-            <CollapsibleContent>
-                <pre className="border-b p-4">
-                    {contentString}
-                </pre>
+            <CollapsibleContent className="p-4">
+                <pre dangerouslySetInnerHTML={{ __html: highlightedElement }} />
             </CollapsibleContent>
         </Collapsible>
     );
