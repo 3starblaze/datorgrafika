@@ -4,6 +4,14 @@ import referenceTransformer from "./implemented_transformer";
 import { ReactNode } from "react";
 import { points as importedPoints } from "./points";
 import { cn } from "@/lib/utils";
+import {
+    SourceCodeSection,
+} from "@/components/source-code";
+import thisString from ".?raw";
+import implementedTransformerString from "./implemented_transformer?raw";
+import pointsString from "./points?raw";
+import referenceTransformerString from "./reference_transformer?raw";
+import transformerSpecString from "./transformer_spec?raw";
 
 const formatNumber = (x: number) => x.toFixed(4);
 
@@ -165,6 +173,19 @@ export default function () {
     return (
         <div>
             <h2 className="text-4xl mb-4">Uzdevums (5a)</h2>
+
+            <SourceCodeSection
+                sources={[
+                    { title: "./index", contentString: thisString },
+                    { title: "./implemented_transformer", contentString: implementedTransformerString },
+                    { title: "./points", contentString: pointsString },
+                    { title: "./reference_transformer", contentString: referenceTransformerString },
+                    { title: "./transformer_spec", contentString: transformerSpecString },
+                ]}
+            />
+
+            <h3 className="text-2xl my-4">Gadījumu tabula</h3>
+
             <div className="grid grid-cols-5 gap-2">
                 <>
                     <div className="font-bold text-lg">Gadījums</div>
