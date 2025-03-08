@@ -2,11 +2,6 @@ import { useState } from "react";
 import { ParticleSystem } from "./particle_system";
 import { Canvas } from "./render_util";
 import {
-    Collapsible,
-    CollapsibleContent,
-    CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import {
     SourceCodeSection,
 } from "@/components/source-code";
 import thisString from ".?raw";
@@ -72,6 +67,9 @@ export default function () {
 
     const particleSystem: ParticleSystem<MyParticle> = makeParticleSystem(origin);
 
+    const width = 300;
+    const height = 300;
+
     return (
         <div>
             <h2 className="text-4xl my-4">Uzdevums (1b)</h2>
@@ -85,7 +83,8 @@ export default function () {
             />
 
             <h3 className="text-2xl my-4">Programma darbībā</h3>
-            <div>Origin: {JSON.stringify(origin)}</div>
+            <p className="mb-2">Daļiņu sistēmas sākumpunkts: {JSON.stringify(origin)}</p>
+            <p className="mb-2">Virsmas izmērs: {width}x{height}px</p>
 
             <Canvas
                 onMouseMove={(event) => {
@@ -95,8 +94,8 @@ export default function () {
                     setOrigin({ x, y });
                 }}
                 particleSystem={particleSystem}
-                width={400}
-                height={400}
+                width={width}
+                height={height}
             />
         </div>
     );

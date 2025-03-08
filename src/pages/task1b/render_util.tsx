@@ -47,8 +47,8 @@ export const Canvas = function<Particle>({
         <canvas
             {...props}
             ref={canvasEl}
-            width={400}
-            height={400}
+            width={width}
+            height={height}
         />
     );
 };
