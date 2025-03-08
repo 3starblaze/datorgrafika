@@ -128,34 +128,34 @@ type Example = {
 const exampleRegistry: Example[] = [
   {
     title: "Kvadrāts ar malām paralēli asīm",
-    canvasSize: [400, 400],
+    canvasSize: [300, 300],
     polygon: [
-      [10, 10],
-      [390, 10],
-      [390, 390],
-      [10, 390],
+      [50, 50],
+      [200, 50],
+      [200, 200],
+      [50, 200],
     ]
   },
   {
     title: "Kvadrāts, kas ir pagriezts 45 grādus",
-    canvasSize: [400, 400],
+    canvasSize: [300, 300],
     polygon: [
-      [200, 10],
-      [390, 200],
-      [200, 390],
-      [10, 200],
+      [150, 10],
+      [290, 150],
+      [150, 290],
+      [10, 150],
     ]
   },
   {
         title: "Pašpārklājošs daudzstūris",
-        canvasSize: [400, 400],
+        canvasSize: [300, 300],
         polygon: [
             [0, 200],
-            [40, 400],
+            [40, 300],
             [80, 0],
-            [120, 400],
+            [120, 300],
             [160, 0],
-            [200, 400],
+            [200, 300],
             [240, 0],
         ]
     },
@@ -195,21 +195,21 @@ const RotatingPolygon = function () {
         return () => { keepGoing = false };
     });
 
-    const points: Vector2[] = polygonPoints(100, offset, 6).map(([x, y]) => [x + 200, y + 200]);
+    const points: Vector2[] = polygonPoints(100, offset, 6).map(([x, y]) => [x + 150, y + 150]);
 
     return (
         <>
+            <PointInfo title="Rotējošs regulārs daudzstūris" polygon={points} />
             <MyPolygonCanvas
-                size={[400, 400]}
+                size={[300, 300]}
                 polygon={points} />
             <svg
                 className="fill-black"
-                width={400}
-                height={400}
+                width={300}
+                height={300}
             >
                 <polygon points={points.map(([x, y]) => `${x},${y}`).join(", ")} />
             </svg>
-            <PointInfo title="Rotējošs regulārs daudzstūris" polygon={points} />
         </>
     );
 };
@@ -223,7 +223,7 @@ const PointInfo = function({
 }) {
   return (
         <div className="flex flex-col gap-4">
-            <div className="text-xl">{title}</div>
+            <div className="text-lg font-bold">{title}</div>
             <div>
                 <div className="text-lg">Punkti:</div>
                 <div className="flex">
@@ -254,17 +254,16 @@ export default function () {
 
             <h3 className="text-2xl my-4">Programma darbībā</h3>
 
-
-
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-3 gap-4 overflow-x-scroll w-max">
                 <>
-                    <div>Mana implementācija</div>
-                    <div>SVG reference</div>
-                    <div>Info</div>
+                    <div className="font-bold">Info</div>
+                    <div className="font-bold">Mana implementācija</div>
+                    <div className="font-bold">SVG reference</div>
                 </>
                 <RotatingPolygon />
                 {exampleRegistry.map(({ title, canvasSize, polygon }) => (
                     <>
+                        <PointInfo title={title} polygon={polygon} />
                         <MyPolygonCanvas size={canvasSize} polygon={polygon} />
                         <svg
                             className="fill-black"
@@ -273,7 +272,6 @@ export default function () {
                         >
                             <polygon points={polygon.map(([x, y]) => `${x},${y}`).join(", ")} />
                         </svg>
-                        <PointInfo title={title} polygon={polygon} />
                     </>
                 ))}
             </div>
