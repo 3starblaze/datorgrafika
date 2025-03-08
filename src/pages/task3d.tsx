@@ -1,4 +1,6 @@
 import { ReactNode, useEffect, useRef, useState } from "react";
+import thisString from "./task3d?raw";
+import { SourceCodeSection } from "@/components/source-code";
 
 type Vector2 = [number, number];
 type Polygon = Vector2[];
@@ -206,9 +208,17 @@ const RotatingPolygon = function () {
 export default function () {
     return (
         <div>
-          <RotatingPolygon />
-
             <h2 className="text-4xl mb-4">Uzdevums (3d)</h2>
+
+            <SourceCodeSection
+                sources={[
+                    { title: "./index", contentString: thisString },
+                ]}
+            />
+
+            <h3 className="text-2xl my-4">Programma darbībā</h3>
+
+            <RotatingPolygon />
 
             <div className="flex flex-col gap-4">
                 {exampleRegistry.map(({ title, canvasSize, polygon }) => (
