@@ -26,7 +26,9 @@ export const SourceCode = function ({
             >
                 <span>{title}</span>
             </CollapsibleTrigger>
-            <CollapsibleContent className="p-4">
+            <CollapsibleContent
+                className="p-4 overflow-x-scroll"
+            >
                 <pre dangerouslySetInnerHTML={{ __html: highlightedElement }} />
             </CollapsibleContent>
         </Collapsible>
