@@ -72,7 +72,7 @@ export default function () {
 
     return (
         <div>
-            <h2 className="text-4xl my-4">Uzdevums (1b)</h2>
+            <h2 className="text-4xl mb-4">Uzdevums (1b)</h2>
 
             <SourceCodeSection
                 sources={[
