@@ -1,7 +1,7 @@
-import { ReactNode, useEffect, useRef } from "react";
+import { ReactNode, useEffect, useRef, useState } from "react";
 
 type Vector2 = [number, number];
-type Polygon = [Vector2, Vector2, Vector2, ...Vector2[]];
+type Polygon = Vector2[];
 
 const PIXEL_SIZE = 4;
 const MAX_BYTE = 255;
@@ -156,9 +156,58 @@ const exampleRegistry: Example[] = [
   },
 ];
 
+const polygonPoints = function(
+  diagonalRadius: number,
+  angle: number,
+  sides: number,
+): Vector2[] {
+    return [...Array(sides).keys()].map(
+        (i) => {
+            const newAngle = i * 2 * Math.PI / sides + angle;
+            return [Math.cos(newAngle) * diagonalRadius, Math.sin(newAngle) * diagonalRadius];
+        }
+    );
+};
+
+const RotatingPolygon = function () {
+    const [offset, setOffset] = useState(0);
+
+    useEffect(() => {
+        let start: DOMHighResTimeStamp;
+        let keepGoing = true;
+
+        const callback = (last: DOMHighResTimeStamp) => {
+            if (!keepGoing) return;
+            if (start === undefined) start = last;
+
+            setOffset(offset + (last - start) * 0.0015);
+            start = last;
+
+            requestAnimationFrame(callback);
+        }
+
+        requestAnimationFrame(callback);
+        return () => { keepGoing = false };
+    });
+
+    const points: Vector2[] = polygonPoints(100, offset, 6).map(([x, y]) => [x + 200, y + 200]);
+
+    return (
+        <div className="flex">
+            <Card title="My implementation">
+                <MyPolygonCanvas
+                    size={[400, 400]}
+                    polygon={points} />
+            </Card>
+        </div>
+    );
+};
+
 export default function () {
     return (
         <div>
+          <RotatingPolygon />
+
             <h2 className="text-4xl mb-4">Uzdevums (3d)</h2>
 
             <div className="flex flex-col gap-4">
@@ -180,8 +229,8 @@ export default function () {
                             <div className="px-4 flex flex-col gap-4">
                                 <div className="text-xl font-bold">{title}</div>
                                 <div>
-                                  <div className="text-lg font-bold">Points:</div>
-                                  {polygon.map(([x, y]) => <div>{`[${x}, ${y}]`}</div>)}
+                                    <div className="text-lg font-bold">Points:</div>
+                                    {polygon.map(([x, y]) => <div>{`[${x}, ${y}]`}</div>)}
                                 </div>
                             </div>
                         </Card>
