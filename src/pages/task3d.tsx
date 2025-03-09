@@ -32,7 +32,9 @@ const intersectionByY = function(
   const minY = Math.min(y0, y1);
   const maxY = Math.max(y0, y1);
 
-  if (!(minY <= y && y <= maxY)) return null;
+  // NOTE: The endpoint is not included in order to avoid double-counting a vertex in which one
+  // edge ends and another starts
+  if (!(minY <= y && y < maxY)) return null;
 
   const scale = (y - y0) / (y1 - y0);
 
@@ -48,7 +50,6 @@ const polygonToLines = function(polygon: Polygon): [Vector2, Vector2][] {
   ];
 };
 
-// FIXME: This algorithm is broken
 const algorithm = function(
   imageData: ImageData,
   polygon: Polygon,
