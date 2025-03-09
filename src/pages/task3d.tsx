@@ -1,4 +1,4 @@
-import { ReactNode, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import thisString from "./task3d?raw";
 import { SourceCodeSection } from "@/components/source-code";
 
@@ -105,21 +105,6 @@ const MyPolygonCanvas = function({
     );
 };
 
-const Card = function({
-  title,
-  children,
-}: {
-  title: string,
-  children: ReactNode,
-}) {
-    return (
-        <div className="bg-yellow-100 flex flex-col gap-2">
-            <h3 className="bg-yellow-200 p-2">{title}</h3>
-            {children}
-        </div>
-    );
-};
-
 type Example = {
   title: string,
   canvasSize: Vector2,
@@ -167,7 +152,7 @@ const polygonPoints = function (
     angle: number,
     sides: number,
 ): Vector2[] {
-    return [...Array(sides).keys()].map(
+    return range(sides).map(
         (i) => {
             const newAngle = i * 2 * Math.PI / sides + angle;
             return [Math.cos(newAngle) * diagonalRadius, Math.sin(newAngle) * diagonalRadius];
@@ -242,7 +227,7 @@ const PointInfo = function({
     )
 };
 
-export default function () {
+export default function Task() {
     return (
         <div>
             <h2 className="text-4xl mb-4">Uzdevums (3d)</h2>
