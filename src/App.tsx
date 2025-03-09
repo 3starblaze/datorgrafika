@@ -11,7 +11,10 @@ import {
 
 function App() {
     return (
-        <div className="bg-white w-screen h-screen p-4">
+        // NOTE: 100vw includes the scrollbar which causes undesired horizontal overflow in
+        // Chromium browsers on non-mobile devices. This is why we use this peculiar calc, see
+        // https://stackoverflow.com/a/34884924
+        <div className="bg-white w-[calc(100vw-(100vw-100%)] min-h-screen p-4">
             <Tabs defaultValue="init">
                 <TabsList className="mb-4">
                     <TabsTrigger value="init">Mājas</TabsTrigger>
