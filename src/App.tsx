@@ -1,5 +1,6 @@
 import Init from "./pages/init";
 import Task1b from "./pages/task1b";
+import Task2a from "./pages/task2a";
 import Task3d from "./pages/task3d";
 import Task5a from "./pages/task5a";
 import {
@@ -20,6 +21,7 @@ function App() {
                     <TabsTrigger value="init">Mājas</TabsTrigger>
 
                     <TabsTrigger value="task_1b">Uzdevums 1b</TabsTrigger>
+                    <TabsTrigger value="task_2a">Uzdevums 2a</TabsTrigger>
                     <TabsTrigger value="task_3d">Uzdevums 3d</TabsTrigger>
                 </TabsList>
 
@@ -29,12 +31,15 @@ function App() {
                 <TabsContent value="task_1b">
                     <Task1b />
                 </TabsContent>
+                <TabsContent value="task_2a">
+                    <Task2a />
+                </TabsContent>
                 <TabsContent value="task_3d">
                     <Task3d />
                 </TabsContent>
             </Tabs>
         </div>
-    );
+        );
 }
 
 export default App;
