@@ -23,6 +23,7 @@ function App() {
                     <TabsTrigger value="task_1b">Uzdevums 1b</TabsTrigger>
                     <TabsTrigger value="task_2a">Uzdevums 2a</TabsTrigger>
                     <TabsTrigger value="task_3d">Uzdevums 3d</TabsTrigger>
+                    <TabsTrigger value="task_5a">Uzdevums 5a</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="init">
@@ -37,9 +38,12 @@ function App() {
                 <TabsContent value="task_3d">
                     <Task3d />
                 </TabsContent>
+                <TabsContent value="task_5a">
+                    <Task5a />
+                </TabsContent>
             </Tabs>
         </div>
-        );
+    );
 }
 
 export default App;
