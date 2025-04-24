@@ -1,4 +1,6 @@
 
+const BYTES_PER_PIXEL = 4;
+
 export const rgbToGray = function (r: number, g: number, b: number) {
     return 0.2126 * r + 0.7152 * g + 0.0722 * b;
 };
@@ -19,55 +21,73 @@ export const makeMemoizedTwiddle = function (n: number): (u: number, k: number) 
     return (u, k) => cache[u*n + k];
 };
 
+const incrementValue = (destinationArray: Uint8ClampedArray, index: number, delta: number) => {
+    destinationArray[index + 0] += delta;
+    destinationArray[index + 1] += delta;
+    destinationArray[index + 2] += delta;
+    destinationArray[index + 3] = 255; // NOTE: Full opacity
+};
+
+const rowwiseFourierTransform = function (sourceImageData: ImageData) {
+    const { width, height } = sourceImageData;
+
+    const res = new ImageData(
+        new Uint8ClampedArray(sourceImageData.data.length),
+        width,
+        height,
+    );
+
+    const n = width;
+    const getTwiddle = makeMemoizedTwiddle(n);
+
+    for (let row = 0; row < height; row++) {
+        const absoluteIndex = (i: number) => (row * width + i) * BYTES_PER_PIXEL;
+        for (let u = 0; u < n; u++) {
+            const indexU = absoluteIndex(u);
+
+            for (let k = 0; k < n; k++) {
+                incrementValue(
+                    res.data,
+                    indexU,
+                    getTwiddle(u, k) * sourceImageData.data[absoluteIndex(k)],
+                );
+            }
+        }
+    }
+
+    return res;
+};
+
+const columnwiseFourierTransform = function (sourceImageData: ImageData) {
+    const { width, height } = sourceImageData;
+
+    const res = new ImageData(
+        new Uint8ClampedArray(sourceImageData.data.length),
+        width,
+        height,
+    );
+
+    const n = sourceImageData.height;
+    const getTwiddle = makeMemoizedTwiddle(n);
+
+    for (let col = 0; col < width; col++) {
+        const absoluteIndex = (i: number) => (i * width + col) * BYTES_PER_PIXEL;
+        for (let u = 0; u < n; u++) {
+            const indexU = absoluteIndex(u);
+
+            for (let k = 0; k < n; k++) {
+                incrementValue(
+                    res.data,
+                    indexU,
+                    getTwiddle(u, k) * sourceImageData.data[absoluteIndex(k)],
+                );
+            }
+        }
+    }
+
+    return res;
+};
+
 export const fourierTransform = async function (imageData: ImageData) {
-    const res0 = new ImageData(
-        new Uint8ClampedArray(imageData.data.length),
-        imageData.width,
-        imageData.height
-    );
-
-    const incrementValue = (arr: Uint8ClampedArray, index: number, delta: number) => {
-        arr[index + 0] += delta;
-        arr[index + 1] += delta;
-        arr[index + 2] += delta;
-        arr[index + 3] = 255; // NOTE: Full opacity
-    };
-
-    const BYTES_PER_PIXEL = 4;
-    let n;
-    let getTwiddle;
-
-    n = imageData.width;
-    getTwiddle = makeMemoizedTwiddle(n);
-    for (let row = 0; row < imageData.height; row++) {
-        const absoluteIndex = (i: number) => (row * imageData.width + i) * BYTES_PER_PIXEL;
-        for (let u = 0; u < n; u++) {
-            const indexU = absoluteIndex(u);
-
-            for (let k = 0; k < n; k++) {
-                incrementValue(res0.data, indexU, getTwiddle(u, k) * imageData.data[absoluteIndex(k)]);
-            }
-        }
-    }
-
-    const res1 = new ImageData(
-        new Uint8ClampedArray(imageData.data.length),
-        imageData.width,
-        imageData.height
-    );
-
-    n = imageData.height;
-    getTwiddle = makeMemoizedTwiddle(n);
-    for (let col = 0; col < imageData.width; col++) {
-        const absoluteIndex = (i: number) => (i * imageData.width + col) * BYTES_PER_PIXEL;
-        for (let u = 0; u < n; u++) {
-            const indexU = absoluteIndex(u);
-
-            for (let k = 0; k < n; k++) {
-                incrementValue(res1.data, indexU, getTwiddle(u, k) * res0.data[absoluteIndex(k)]);
-            }
-        }
-    }
-
-    return res1;
+    return columnwiseFourierTransform(rowwiseFourierTransform(imageData));
 };
