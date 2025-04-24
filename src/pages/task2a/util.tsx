@@ -20,17 +20,17 @@ export const makeMemoizedTwiddle = function (n: number): (u: number, k: number) 
 };
 
 export const fourierTransform = async function (imageData: ImageData) {
-    const res = new ImageData(
+    const res0 = new ImageData(
         new Uint8ClampedArray(imageData.data.length),
         imageData.width,
         imageData.height
     );
 
-    const incrementValue = (index: number, delta: number) => {
-        res.data[index + 0] += delta;
-        res.data[index + 1] += delta;
-        res.data[index + 2] += delta;
-        res.data[index + 3] = 255; // NOTE: Full opacity
+    const incrementValue = (arr: Uint8ClampedArray, index: number, delta: number) => {
+        arr[index + 0] += delta;
+        arr[index + 1] += delta;
+        arr[index + 2] += delta;
+        arr[index + 3] = 255; // NOTE: Full opacity
     };
 
     const BYTES_PER_PIXEL = 4;
@@ -45,29 +45,29 @@ export const fourierTransform = async function (imageData: ImageData) {
             const indexU = absoluteIndex(u);
 
             for (let k = 0; k < n; k++) {
-                incrementValue(indexU, getTwiddle(u, k) * imageData.data[absoluteIndex(k)]);
+                incrementValue(res0.data, indexU, getTwiddle(u, k) * imageData.data[absoluteIndex(k)]);
             }
         }
     }
 
-    /* const res1 = new ImageData(
-*     new Uint8ClampedArray(imageData.data.length),
-*     imageData.width,
-*     imageData.height
-* );
+    const res1 = new ImageData(
+        new Uint8ClampedArray(imageData.data.length),
+        imageData.width,
+        imageData.height
+    );
 
-* n = imageData.height;
-* getTwiddle = makeMemoizedTwiddle(n);
-* for (let col = 0; col < imageData.width; col++) {
-*     const absoluteIndex = (i: number) => (i * imageData.width + col) * BYTES_PER_PIXEL;
-*     for (let u = 0; u < n; u++) {
-*         const indexU = absoluteIndex(u);
+    n = imageData.height;
+    getTwiddle = makeMemoizedTwiddle(n);
+    for (let col = 0; col < imageData.width; col++) {
+        const absoluteIndex = (i: number) => (i * imageData.width + col) * BYTES_PER_PIXEL;
+        for (let u = 0; u < n; u++) {
+            const indexU = absoluteIndex(u);
 
-*         for (let k = 0; k < n; k++) {
-*             incrementValue(indexU, getTwiddle(u, k) * imageData.data[absoluteIndex(k)]);
-*         }
-*     }
-* } */
+            for (let k = 0; k < n; k++) {
+                incrementValue(res1.data, indexU, getTwiddle(u, k) * res0.data[absoluteIndex(k)]);
+            }
+        }
+    }
 
-    return res;
+    return res1;
 };
