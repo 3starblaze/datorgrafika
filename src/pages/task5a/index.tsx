@@ -13,6 +13,18 @@ import pointsString from "./points?raw";
 import referenceTransformerString from "./reference_transformer?raw";
 import transformerSpecString from "./transformer_spec?raw";
 
+import Model from "./monkey.glb?url";
+
+import {
+    GLTFLoader,
+} from "three/addons";
+
+const loader = new GLTFLoader();
+loader.load(Model, function (gltf) {
+    const model = gltf.scenes[0].children[0];
+    console.log("loaded model: ", model);
+});
+
 const formatNumber = (x: number) => x.toFixed(4);
 
 const points = importedPoints.slice(0, 5);
