@@ -20,6 +20,7 @@ import {
 } from "three/addons";
 import {
     BufferGeometry,
+    TypedArray,
 } from "three";
 
 const loader = new GLTFLoader();
@@ -202,12 +203,57 @@ const reportTestCase = function(testCase: TestCase) {
     );
 };
 
+type TriangleWithOrder = {
+    el: ReactNode,
+    // NOTE: Order number, the bigger the number, the later it appears in tree, akin
+    // to CSS z-index.
+    zIndex: number,
+};
+
+type Face = {
+    x0: number,
+    y0: number,
+    z0: number,
+    x1: number,
+    y1: number,
+    z1: number,
+    x2: number,
+    y2: number,
+    z2: number,
+};
+
+const mapFaces = function (
+    positionArr: TypedArray,
+    indexArr: TypedArray,
+    f: (face: Face) => TriangleWithOrder,
+): ReactNode[] {
+    const unsortedTriangles: TriangleWithOrder[] = [];
+
+    for (let i = 0; i + 3 <= indexArr.length; i += 3) {
+        const x0 = positionArr[3 * indexArr[i + 0] + 0];
+        const y0 = positionArr[3 * indexArr[i + 0] + 1];
+        const z0 = positionArr[3 * indexArr[i + 0] + 2];
+
+        const x1 = positionArr[3 * indexArr[i + 1] + 0];
+        const y1 = positionArr[3 * indexArr[i + 1] + 1];
+        const z1 = positionArr[3 * indexArr[i + 1] + 2];
+
+        const x2 = positionArr[3 * indexArr[i + 2] + 0];
+        const y2 = positionArr[3 * indexArr[i + 2] + 1];
+        const z2 = positionArr[3 * indexArr[i + 2] + 2];
+
+        unsortedTriangles.push(f({ x0, y0, z0, x1, y1, z1, x2, y2, z2 }));
+    }
+
+    unsortedTriangles.sort((a, b) => a.zIndex - b.zIndex);
+
+    return unsortedTriangles.map(({el}) => el);
+};
 
 export default function () {
     const [model, setModel] = useState<BufferGeometry | null>(null);
 
     const [triangles, setTriangles] = useState<ReactNode[] | null>(null);
-
 
     useEffect(() => {
         loader.load(Model, function (gltf) {
@@ -219,29 +265,8 @@ export default function () {
             const positionArr = geometry.attributes.position.array;
             const indexArr = geometry.index!.array;
 
-            type TriangleWithOrder = {
-                el: ReactNode,
-                // NOTE: Order number, the bigger the number, the later it appears in tree, akin
-                // to CSS z-index.
-                zIndex: number,
-            };
-
-            const unsortedTriangles: TriangleWithOrder[] = [];
-
-            for (let i = 0; i + 3 <= indexArr.length; i += 3) {
-                const x0 = positionArr[3 * indexArr[i + 0] + 0];
-                const y0 = positionArr[3 * indexArr[i + 0] + 1];
-                const z0 = positionArr[3 * indexArr[i + 0] + 2];
-
-                const x1 = positionArr[3 * indexArr[i + 1] + 0];
-                const y1 = positionArr[3 * indexArr[i + 1] + 1];
-                const z1 = positionArr[3 * indexArr[i + 1] + 2];
-
-                const x2 = positionArr[3 * indexArr[i + 2] + 0];
-                const y2 = positionArr[3 * indexArr[i + 2] + 1];
-                const z2 = positionArr[3 * indexArr[i + 2] + 2];
-
-                unsortedTriangles.push({
+            setTriangles(
+                mapFaces(positionArr, indexArr, ({ x0, y0, z0, x1, y1, z1, x2, y2, z2 }) => ({
                     el: (
                         <polygon
                             points={`${x0},${y0} ${x1},${y1}, ${x2},${y2}`}
@@ -249,12 +274,7 @@ export default function () {
                         />
                     ),
                     zIndex: z0 + z1 + z2,
-                });
-            }
-
-            unsortedTriangles.sort((a, b) => a.zIndex - b.zIndex);
-
-            setTriangles(unsortedTriangles.map(({ el }) => el));
+                })));
         });
     }, []);
 
