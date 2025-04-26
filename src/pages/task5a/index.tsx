@@ -223,10 +223,12 @@ type Face = {
 };
 
 const mapFaces = function (
-    positionArr: TypedArray,
-    indexArr: TypedArray,
+    geometry: BufferGeometry,
     f: (face: Face) => TriangleWithOrder,
 ): ReactNode[] {
+    const positionArr = geometry.attributes.position.array;
+    const indexArr = geometry.index!.array;
+
     const unsortedTriangles: TriangleWithOrder[] = [];
 
     for (let i = 0; i + 3 <= indexArr.length; i += 3) {
@@ -251,34 +253,55 @@ const mapFaces = function (
 };
 
 export default function () {
-    const [model, setModel] = useState<BufferGeometry | null>(null);
+    const [geometry, setGeometry] = useState<BufferGeometry | null>(null);
 
-    const [triangles, setTriangles] = useState<ReactNode[] | null>(null);
+    const zTriangles: ReactNode[] | null = geometry && mapFaces(
+        geometry,
+        ({ x0, y0, z0, x1, y1, z1, x2, y2, z2 }) => ({
+            el: (
+                <polygon
+                    points={`${x0},${y0} ${x1},${y1}, ${x2},${y2}`}
+                    strokeWidth={"0.001"}
+                />
+            ),
+            zIndex: z0 + z1 + z2,
+        }),
+    );
+
+    const yTriangles: ReactNode[] | null = geometry && mapFaces(
+        geometry,
+        ({ x0, y0, z0, x1, y1, z1, x2, y2, z2 }) => ({
+            el: (
+                <polygon
+                    points={`${x0},${z0} ${x1},${z1}, ${x2},${z2}`}
+                    strokeWidth={"0.001"}
+                />
+            ),
+            zIndex: y0 + y1 + y2,
+        }),
+    );
+
+    const xTriangles: ReactNode[] | null = geometry && mapFaces(
+        geometry,
+        ({ x0, y0, z0, x1, y1, z1, x2, y2, z2 }) => ({
+            el: (
+                <polygon
+                    points={`${y0},${z0} ${y1},${z1}, ${y2},${z2}`}
+                    strokeWidth={"0.001"}
+                />
+            ),
+            zIndex: x0 + x1 + x2,
+        }),
+    );
 
     useEffect(() => {
         loader.load(Model, function (gltf) {
             const loadedModel = gltf.scenes[0].children[0];
             // NOTE: Geometry exists, I don't know what types you have to use to prove it
             const geometry: BufferGeometry = (loadedModel as any).geometry;
-            setModel(geometry);
-
-            const positionArr = geometry.attributes.position.array;
-            const indexArr = geometry.index!.array;
-
-            setTriangles(
-                mapFaces(positionArr, indexArr, ({ x0, y0, z0, x1, y1, z1, x2, y2, z2 }) => ({
-                    el: (
-                        <polygon
-                            points={`${x0},${y0} ${x1},${y1}, ${x2},${y2}`}
-                            strokeWidth={"0.001"}
-                        />
-                    ),
-                    zIndex: z0 + z1 + z2,
-                })));
+            setGeometry(geometry);
         });
     }, []);
-
-
 
     return (
         <div>
@@ -298,14 +321,38 @@ export default function () {
 
             <h4 className="text-xl my-4">Mērkaķis (z-ass skatītāja virzienā)</h4>
 
-            {triangles && (
+            {zTriangles && (
                 <svg
                     viewBox="-2 -2 4 4"
                     className="max-w-80 border border-gray-500 fill-blue-100 stroke-black"
                 >
-                    {triangles}
+                    {zTriangles}
                 </svg>
             )}
+
+            <h4 className="text-xl my-4">Mērkaķis (y-ass skatītāja virzienā)</h4>
+
+            {yTriangles && (
+                <svg
+                    viewBox="-2 -2 4 4"
+                    className="max-w-80 border border-gray-500 fill-blue-100 stroke-black"
+                >
+                    {yTriangles}
+                </svg>
+            )}
+
+            <h4 className="text-xl my-4">Mērkaķis (x-ass skatītāja virzienā)</h4>
+
+            {xTriangles && (
+                <svg
+                    viewBox="-2 -2 4 4"
+                    className="max-w-80 border border-gray-500 fill-blue-100 stroke-black"
+                >
+                    {xTriangles}
+                </svg>
+            )}
+
+
 
             <h3 className="text-2xl my-4">Gadījumu tabula</h3>
 
