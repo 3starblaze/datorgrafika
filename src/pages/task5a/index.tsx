@@ -1,7 +1,7 @@
 import { Transformer } from "./transformer_spec";
 import implementedTransformer from "./implemented_transformer";
 import referenceTransformer from "./implemented_transformer";
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useEffect, useMemo, useState } from "react";
 import { points as importedPoints } from "./points";
 import { cn } from "@/lib/utils";
 import {
@@ -252,47 +252,93 @@ const mapFaces = function (
     return unsortedTriangles.map(({el}) => el);
 };
 
+const positionArrToDomPointArr = function(
+    positionArr: TypedArray,
+): DOMPoint[] {
+    const res: DOMPoint[] = [];
+
+    for (let i = 0; i + 3 <= positionArr.length; i += 3) {
+        res.push(new DOMPoint(
+            positionArr[i + 0],
+            positionArr[i + 1],
+            positionArr[i + 2],
+        ));
+    }
+
+    return res;
+};
+
+const domPointArrToSvg = function(
+    domPointArr: DOMPoint[],
+    indexArr: TypedArray,
+): ReactNode {
+    const unsortedTriangles: TriangleWithOrder[] = [];
+
+    for (let i = 0; i + 3 <= indexArr.length; i += 3) {
+        const p0 = domPointArr[indexArr[i + 0]];
+        const p1 = domPointArr[indexArr[i + 1]];
+        const p2 = domPointArr[indexArr[i + 2]];
+
+        unsortedTriangles.push({
+            el: (
+                <polygon
+                    points={`${p0.x},${p0.y} ${p1.x},${p1.y}, ${p2.x},${p2.y}`}
+                    strokeWidth={"0.001"}
+                />
+            ),
+            zIndex: p0.z + p1.z + p2.z,
+        });
+    }
+
+    unsortedTriangles.sort((a, b) => a.zIndex - b.zIndex);
+
+    return (
+        <svg
+            viewBox="-2 -2 4 4"
+            className="max-w-80 border border-gray-500 fill-blue-100 stroke-black"
+        >
+            {unsortedTriangles.map(({ el }) => el)}
+        </svg>
+    );
+};
+
+const VisualExampleSection = function({
+    geometry,
+}: {
+    geometry: BufferGeometry,
+}) {
+    const domPoints = positionArrToDomPointArr(geometry.attributes.position.array);
+    const indexArr = geometry.index!.array;
+    const pointsToSvg = (points: DOMPoint[]) => domPointArrToSvg(points, indexArr);
+
+    return (
+        <div>
+            <h3 className="text-2xl my-4">Vizuāli piemēri</h3>
+
+            <h4 className="text-xl my-4">Mērkaķis (z-ass skatītāja virzienā)</h4>
+
+            {pointsToSvg(domPoints)}
+
+            <h4 className="text-xl my-4">Mērkaķis (y-ass skatītāja virzienā)</h4>
+
+            {pointsToSvg(domPoints.map((p) => new DOMPoint(p.x, p.z, p.y)))}
+
+            <h4 className="text-xl my-4">Mērkaķis (x-ass skatītāja virzienā)</h4>
+
+            {pointsToSvg(domPoints.map((p) => new DOMPoint(p.y, p.z, p.x)))}
+
+            <h4 className="text-xl my-4">Isometriskā projekcija</h4>
+
+            {pointsToSvg(domPoints.map((p) => implementedTransformer.transformPoint(
+                p,
+                parallelProjectionMatrix(new DOMPoint(1, 1, 1)),
+            )))}
+        </div>
+    );
+};
+
 export default function () {
     const [geometry, setGeometry] = useState<BufferGeometry | null>(null);
-
-    const zTriangles: ReactNode[] | null = geometry && mapFaces(
-        geometry,
-        ({ x0, y0, z0, x1, y1, z1, x2, y2, z2 }) => ({
-            el: (
-                <polygon
-                    points={`${x0},${y0} ${x1},${y1}, ${x2},${y2}`}
-                    strokeWidth={"0.001"}
-                />
-            ),
-            zIndex: z0 + z1 + z2,
-        }),
-    );
-
-    const yTriangles: ReactNode[] | null = geometry && mapFaces(
-        geometry,
-        ({ x0, y0, z0, x1, y1, z1, x2, y2, z2 }) => ({
-            el: (
-                <polygon
-                    points={`${x0},${z0} ${x1},${z1}, ${x2},${z2}`}
-                    strokeWidth={"0.001"}
-                />
-            ),
-            zIndex: y0 + y1 + y2,
-        }),
-    );
-
-    const xTriangles: ReactNode[] | null = geometry && mapFaces(
-        geometry,
-        ({ x0, y0, z0, x1, y1, z1, x2, y2, z2 }) => ({
-            el: (
-                <polygon
-                    points={`${y0},${z0} ${y1},${z1}, ${y2},${z2}`}
-                    strokeWidth={"0.001"}
-                />
-            ),
-            zIndex: x0 + x1 + x2,
-        }),
-    );
 
     useEffect(() => {
         loader.load(Model, function (gltf) {
@@ -317,42 +363,7 @@ export default function () {
                 ]}
             />
 
-            <h3 className="text-2xl my-4">Vizuāli piemēri</h3>
-
-            <h4 className="text-xl my-4">Mērkaķis (z-ass skatītāja virzienā)</h4>
-
-            {zTriangles && (
-                <svg
-                    viewBox="-2 -2 4 4"
-                    className="max-w-80 border border-gray-500 fill-blue-100 stroke-black"
-                >
-                    {zTriangles}
-                </svg>
-            )}
-
-            <h4 className="text-xl my-4">Mērkaķis (y-ass skatītāja virzienā)</h4>
-
-            {yTriangles && (
-                <svg
-                    viewBox="-2 -2 4 4"
-                    className="max-w-80 border border-gray-500 fill-blue-100 stroke-black"
-                >
-                    {yTriangles}
-                </svg>
-            )}
-
-            <h4 className="text-xl my-4">Mērkaķis (x-ass skatītāja virzienā)</h4>
-
-            {xTriangles && (
-                <svg
-                    viewBox="-2 -2 4 4"
-                    className="max-w-80 border border-gray-500 fill-blue-100 stroke-black"
-                >
-                    {xTriangles}
-                </svg>
-            )}
-
-
+            {geometry && (<VisualExampleSection geometry={geometry}/>)}
 
             <h3 className="text-2xl my-4">Gadījumu tabula</h3>
 
