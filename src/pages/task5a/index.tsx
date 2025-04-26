@@ -279,14 +279,25 @@ const domPointArrToSvg = function(
         const p1 = domPointArr[indexArr[i + 1]];
         const p2 = domPointArr[indexArr[i + 2]];
 
+        // NOTE: Normalize coordinates before drawing
+        const x0 = p0.x / p0.w;
+        const y0 = p0.y / p0.w;
+        const z0 = p0.z / p0.w;
+        const x1 = p1.x / p1.w;
+        const y1 = p1.y / p1.w;
+        const z1 = p1.z / p1.w;
+        const x2 = p2.x / p2.w;
+        const y2 = p2.y / p2.w;
+        const z2 = p2.z / p2.w;
+
         unsortedTriangles.push({
             el: (
                 <polygon
-                    points={`${p0.x},${p0.y} ${p1.x},${p1.y}, ${p2.x},${p2.y}`}
+                    points={`${x0},${y0} ${x1},${y1}, ${x2},${y2}`}
                     strokeWidth={"0.001"}
                 />
             ),
-            zIndex: p0.z + p1.z + p2.z,
+            zIndex: z0 + z1 + z2,
         });
     }
 
@@ -332,6 +343,18 @@ const VisualExampleSection = function({
             {pointsToSvg(domPoints.map((p) => implementedTransformer.transformPoint(
                 p,
                 parallelProjectionMatrix(new DOMPoint(1, 1, 1)),
+            )))}
+
+            <h4 className="text-xl my-4">Centrālā projekcija</h4>
+
+            {pointsToSvg(domPoints.map((p) => implementedTransformer.transformPoint(
+                p,
+                [
+                    implementedTransformer.rotateY(5 * Math.PI / 4),
+                    implementedTransformer.scaleToMatrix(new DOMPoint(1, -1, 1)),
+                    implementedTransformer.translateToMatrix(new DOMPoint(0, 0, 3.0)),
+                    projectionMatrix(5.0),
+                ].reduce(implementedTransformer.reduceMatrix),
             )))}
         </div>
     );
