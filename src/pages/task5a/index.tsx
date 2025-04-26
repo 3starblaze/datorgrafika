@@ -1,7 +1,7 @@
 import { Transformer } from "./transformer_spec";
 import implementedTransformer from "./implemented_transformer";
 import referenceTransformer from "./implemented_transformer";
-import { ReactNode } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { points as importedPoints } from "./points";
 import { cn } from "@/lib/utils";
 import {
@@ -18,12 +18,11 @@ import Model from "./monkey.glb?url";
 import {
     GLTFLoader,
 } from "three/addons";
+import {
+    BufferGeometry,
+} from "three";
 
 const loader = new GLTFLoader();
-loader.load(Model, function (gltf) {
-    const model = gltf.scenes[0].children[0];
-    console.log("loaded model: ", model);
-});
 
 const formatNumber = (x: number) => x.toFixed(4);
 
@@ -205,6 +204,62 @@ const reportTestCase = function(testCase: TestCase) {
 
 
 export default function () {
+    const [model, setModel] = useState<BufferGeometry | null>(null);
+
+    const [triangles, setTriangles] = useState<ReactNode[] | null>(null);
+
+
+    useEffect(() => {
+        loader.load(Model, function (gltf) {
+            const loadedModel = gltf.scenes[0].children[0];
+            // NOTE: Geometry exists, I don't know what types you have to use to prove it
+            const geometry: BufferGeometry = (loadedModel as any).geometry;
+            setModel(geometry);
+
+            const positionArr = geometry.attributes.position.array;
+            const indexArr = geometry.index!.array;
+
+            type TriangleWithOrder = {
+                el: ReactNode,
+                // NOTE: Order number, the bigger the number, the later it appears in tree, akin
+                // to CSS z-index.
+                zIndex: number,
+            };
+
+            const unsortedTriangles: TriangleWithOrder[] = [];
+
+            for (let i = 0; i + 3 <= indexArr.length; i += 3) {
+                const x0 = positionArr[3 * indexArr[i + 0] + 0];
+                const y0 = positionArr[3 * indexArr[i + 0] + 1];
+                const z0 = positionArr[3 * indexArr[i + 0] + 2];
+
+                const x1 = positionArr[3 * indexArr[i + 1] + 0];
+                const y1 = positionArr[3 * indexArr[i + 1] + 1];
+                const z1 = positionArr[3 * indexArr[i + 1] + 2];
+
+                const x2 = positionArr[3 * indexArr[i + 2] + 0];
+                const y2 = positionArr[3 * indexArr[i + 2] + 1];
+                const z2 = positionArr[3 * indexArr[i + 2] + 2];
+
+                unsortedTriangles.push({
+                    el: (
+                        <polygon
+                            points={`${x0},${y0} ${x1},${y1}, ${x2},${y2}`}
+                            strokeWidth={"0.001"}
+                        />
+                    ),
+                    zIndex: z0 + z1 + z2,
+                });
+            }
+
+            unsortedTriangles.sort((a, b) => a.zIndex - b.zIndex);
+
+            setTriangles(unsortedTriangles.map(({ el }) => el));
+        });
+    }, []);
+
+
+
     return (
         <div>
             <h2 className="text-4xl mb-4">Uzdevums (5a)</h2>
@@ -219,6 +274,19 @@ export default function () {
                 ]}
             />
 
+            <h3 className="text-2xl my-4">Vizuāli piemēri</h3>
+
+            <h4 className="text-xl my-4">Mērkaķis (z-ass skatītāja virzienā)</h4>
+
+            {triangles && (
+                <svg
+                    viewBox="-2 -2 4 4"
+                    className="max-w-80 border border-gray-500 fill-blue-100 stroke-black"
+                >
+                    {triangles}
+                </svg>
+            )}
+
             <h3 className="text-2xl my-4">Gadījumu tabula</h3>
 
             <div className="grid grid-cols-5 gap-2">
@@ -231,6 +299,6 @@ export default function () {
                 </>
                 {testCases.map((testCase) => reportTestCase(testCase))}
             </div>
-        </div>
+        </div >
     );
 };
