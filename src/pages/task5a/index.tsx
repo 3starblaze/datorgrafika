@@ -365,10 +365,20 @@ const VisualExampleSection = function({
     const rotateZState = useState<number>(0);
     const [rotateZ] = rotateZState;
 
+    const scaleXState = useState<number>(1);
+    const [scaleX] = scaleXState;
+
+    const scaleYState = useState<number>(1);
+    const [scaleY] = scaleYState;
+
+    const scaleZState = useState<number>(1);
+    const [scaleZ] = scaleZState;
+
     const domPoints = positionArrToDomPointArr(geometry.attributes.position.array).map(
         (p) => implementedTransformer.transformPoint(
             p,
             [
+                implementedTransformer.scaleToMatrix(new DOMPoint(scaleX, scaleY, scaleZ)),
                 implementedTransformer.rotateX(rotateX),
                 implementedTransformer.rotateY(rotateY),
                 implementedTransformer.rotateZ(rotateZ),
@@ -387,7 +397,36 @@ const VisualExampleSection = function({
             <h3 className="text-2xl my-4">Vizuālo piemēru konfigurēšana</h3>
 
             <div className="grid grid-cols-[repeat(3,auto)] max-w-fit gap-x-4">
-                <h4 className="col-span-3 text-xl mb-2">Rotācija</h4>
+                <h4 className="col-span-3 text-xl mb-2">Mērogošana</h4>
+
+                <RangeSlider
+                    label="X mērogojums"
+                    name="scaleX"
+                    state={scaleXState}
+                    min={Math.pow(10, -1)}
+                    max={Math.pow(10, 1)}
+                />
+                <p>({scaleX.toFixed(2)})</p>
+
+                <RangeSlider
+                    label="Y mērogojums"
+                    name="scaleY"
+                    state={scaleYState}
+                    min={Math.pow(10, -1)}
+                    max={Math.pow(10, 1)}
+                />
+                <p>({scaleY.toFixed(2)})</p>
+
+                <RangeSlider
+                    label="Z mērogojums"
+                    name="scaleZ"
+                    state={scaleZState}
+                    min={Math.pow(10, -1)}
+                    max={Math.pow(10, 1)}
+                />
+                <p>({scaleZ.toFixed(2)})</p>
+
+                <h4 className="col-span-3 text-xl my-2">Rotācija</h4>
 
                 <RangeSlider
                     label="X rotācija"
