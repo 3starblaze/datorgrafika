@@ -338,6 +338,7 @@ const RangeSlider = function({
                 step="any"
                 onChange={(ev) => state[1](Number(ev.target.value))}
             />
+            <p>({state[0].toFixed(2)})</p>
         </>
     );
 };
@@ -427,7 +428,6 @@ const VisualExampleSection = function({
                     min={Math.pow(10, -1)}
                     max={Math.pow(10, 1)}
                 />
-                <p>({scaleX.toFixed(2)})</p>
 
                 <RangeSlider
                     label="Y mērogojums"
@@ -436,7 +436,6 @@ const VisualExampleSection = function({
                     min={Math.pow(10, -1)}
                     max={Math.pow(10, 1)}
                 />
-                <p>({scaleY.toFixed(2)})</p>
 
                 <RangeSlider
                     label="Z mērogojums"
@@ -445,7 +444,6 @@ const VisualExampleSection = function({
                     min={Math.pow(10, -1)}
                     max={Math.pow(10, 1)}
                 />
-                <p>({scaleZ.toFixed(2)})</p>
 
 
                 <h4 className="col-span-3 text-xl my-2">Slīpā nobīde</h4>
@@ -457,7 +455,6 @@ const VisualExampleSection = function({
                     min={0}
                     max={10}
                 />
-                <p>({skewXYX.toFixed(2)})</p>
 
                 <RangeSlider
                     label="XY slīpās nobīdes Y"
@@ -466,7 +463,6 @@ const VisualExampleSection = function({
                     min={0}
                     max={10}
                 />
-                <p className="mb-2">({skewXYY.toFixed(2)})</p>
 
                 <RangeSlider
                     label="XZ slīpās nobīdes X"
@@ -475,7 +471,6 @@ const VisualExampleSection = function({
                     min={0}
                     max={10}
                 />
-                <p>({skewXZX.toFixed(2)})</p>
 
                 <RangeSlider
                     label="XZ slīpās nobīdes Z"
@@ -484,7 +479,6 @@ const VisualExampleSection = function({
                     min={0}
                     max={10}
                 />
-                <p className="mb-2">({skewXZZ.toFixed(2)})</p>
 
                 <RangeSlider
                     label="YZ slīpās nobīdes Y"
@@ -493,7 +487,6 @@ const VisualExampleSection = function({
                     min={0}
                     max={10}
                 />
-                <p>({skewYZY.toFixed(2)})</p>
 
                 <RangeSlider
                     label="YZ slīpās nobīdes Z"
@@ -502,7 +495,6 @@ const VisualExampleSection = function({
                     min={0}
                     max={10}
                 />
-                <p>({skewYZZ.toFixed(2)})</p>
 
 
                 <h4 className="col-span-3 text-xl my-2">Rotācija</h4>
@@ -514,7 +506,6 @@ const VisualExampleSection = function({
                     min={-2 * Math.PI}
                     max={2 * Math.PI}
                 />
-                <p>({rotateX.toFixed(2)})</p>
 
                 <RangeSlider
                     label="Y rotācija"
@@ -523,7 +514,6 @@ const VisualExampleSection = function({
                     min={-2 * Math.PI}
                     max={2 * Math.PI}
                 />
-                <p>({rotateY.toFixed(2)})</p>
 
                 <RangeSlider
                     label="Z rotācija"
@@ -532,7 +522,6 @@ const VisualExampleSection = function({
                     min={-2 * Math.PI}
                     max={2 * Math.PI}
                 />
-                <p>({rotateZ.toFixed(2)})</p>
 
                 <h4 className="col-span-3 text-xl my-2">Translācija</h4>
 
@@ -543,7 +532,6 @@ const VisualExampleSection = function({
                     min={-5}
                     max={5}
                 />
-                <p>({translateX.toFixed(2)})</p>
 
                 <RangeSlider
                     label="Y translācija"
@@ -552,7 +540,6 @@ const VisualExampleSection = function({
                     min={-5}
                     max={5}
                 />
-                <p>({translateY.toFixed(2)})</p>
 
                 <RangeSlider
                     label="Z translācija"
@@ -561,7 +548,6 @@ const VisualExampleSection = function({
                     min={-5}
                     max={5}
                 />
-                <p>({translateZ.toFixed(2)})</p>
             </div>
 
             <h3 className="text-2xl my-4">Vizuāli piemēri</h3>
