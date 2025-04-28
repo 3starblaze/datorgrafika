@@ -374,11 +374,32 @@ const VisualExampleSection = function({
     const scaleZState = useState<number>(1);
     const [scaleZ] = scaleZState;
 
+    const skewXYXState = useState<number>(0);
+    const [skewXYX] = skewXYXState;
+
+    const skewXYYState = useState<number>(0);
+    const [skewXYY] = skewXYYState;
+
+    const skewYZYState = useState<number>(0);
+    const [skewYZY] = skewYZYState;
+
+    const skewYZZState = useState<number>(0);
+    const [skewYZZ] = skewYZZState;
+
+    const skewXZXState = useState<number>(0);
+    const [skewXZX] = skewXZXState;
+
+    const skewXZZState = useState<number>(0);
+    const [skewXZZ] = skewXZZState;
+
     const domPoints = positionArrToDomPointArr(geometry.attributes.position.array).map(
         (p) => implementedTransformer.transformPoint(
             p,
             [
                 implementedTransformer.scaleToMatrix(new DOMPoint(scaleX, scaleY, scaleZ)),
+                implementedTransformer.skewXY(skewXYX, skewXYY),
+                implementedTransformer.skewYZ(skewYZY, skewYZZ),
+                implementedTransformer.skewXZ(skewXZX, skewXZZ),
                 implementedTransformer.rotateX(rotateX),
                 implementedTransformer.rotateY(rotateY),
                 implementedTransformer.rotateZ(rotateZ),
@@ -425,6 +446,64 @@ const VisualExampleSection = function({
                     max={Math.pow(10, 1)}
                 />
                 <p>({scaleZ.toFixed(2)})</p>
+
+
+                <h4 className="col-span-3 text-xl my-2">Slīpā nobīde</h4>
+
+                <RangeSlider
+                    label="XY slīpās nobīdes X"
+                    name="skewXYX"
+                    state={skewXYXState}
+                    min={0}
+                    max={10}
+                />
+                <p>({skewXYX.toFixed(2)})</p>
+
+                <RangeSlider
+                    label="XY slīpās nobīdes Y"
+                    name="skewXYY"
+                    state={skewXYYState}
+                    min={0}
+                    max={10}
+                />
+                <p className="mb-2">({skewXYY.toFixed(2)})</p>
+
+                <RangeSlider
+                    label="XZ slīpās nobīdes X"
+                    name="skewXZX"
+                    state={skewXZXState}
+                    min={0}
+                    max={10}
+                />
+                <p>({skewXZX.toFixed(2)})</p>
+
+                <RangeSlider
+                    label="XZ slīpās nobīdes Z"
+                    name="skewXZZ"
+                    state={skewXZZState}
+                    min={0}
+                    max={10}
+                />
+                <p className="mb-2">({skewXZZ.toFixed(2)})</p>
+
+                <RangeSlider
+                    label="YZ slīpās nobīdes Y"
+                    name="skewYZY"
+                    state={skewYZYState}
+                    min={0}
+                    max={10}
+                />
+                <p>({skewYZY.toFixed(2)})</p>
+
+                <RangeSlider
+                    label="YZ slīpās nobīdes Z"
+                    name="skewYZZ"
+                    state={skewYZZState}
+                    min={0}
+                    max={10}
+                />
+                <p>({skewYZZ.toFixed(2)})</p>
+
 
                 <h4 className="col-span-3 text-xl my-2">Rotācija</h4>
 
@@ -513,6 +592,7 @@ const VisualExampleSection = function({
                 [
                     implementedTransformer.rotateY(5 * Math.PI / 4),
                     implementedTransformer.scaleToMatrix(new DOMPoint(1, -1, 1)),
+                    /* implementedTransformer.skewXY() */
                     implementedTransformer.translateToMatrix(new DOMPoint(0, 0, 3.0)),
                     projectionMatrix(5.0),
                 ].reduce(implementedTransformer.reduceMatrix),
