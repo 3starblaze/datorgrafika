@@ -343,6 +343,26 @@ const RangeSlider = function({
     );
 };
 
+type Vec3 = [number, number, number];
+
+const basisToTransformer = function(
+    basisOrigin: Vec3,
+    basisX: Vec3,
+    basisY: Vec3,
+    basisZ: Vec3,
+): DOMMatrix {
+    // NOTE: p1 = (basis axis matrix) mult (p0 - baseOrigin) which is equivalent to translating
+    // point by -baseOrigin and then multiplying by basis axis matrix which is how this matrix
+    // has been assembled -- take identity matrix, fill top-left corner with basis axis and then
+    // add basis origin in the top right corner.
+    return new DOMMatrix([
+        basisX[0], basisX[1], basisX[2], -basisOrigin[0],
+        basisY[0], basisY[1], basisY[2], -basisOrigin[1],
+        basisZ[0], basisZ[1], basisZ[2], -basisOrigin[2],
+        0, 0, 0, 1,
+    ]);
+}
+
 const VisualExampleSection = function({
     geometry,
 }: {
@@ -405,6 +425,56 @@ const VisualExampleSection = function({
     const perspectiveDepthState = useState<number>(2.0);
     const [perspectiveDepth] = perspectiveDepthState;
 
+    // NOTE: Viewer state
+
+    const originXState = useState<number>(0);
+    const [originX] = originXState;
+
+    const originYState = useState<number>(0);
+    const [originY] = originYState;
+
+    const originZState = useState<number>(0);
+    const [originZ] = originZState;
+
+    const basisOrigin: Vec3 = [originX, originY, originZ];
+
+
+    const zAxisXState = useState<number>(0);
+    const [zAxisX] = zAxisXState;
+
+    const zAxisYState = useState<number>(0);
+    const [zAxisY] = zAxisYState;
+
+    const zAxisZState = useState<number>(1);
+    const [zAxisZ] = zAxisZState;
+
+    const basisZ: Vec3 = [zAxisX, zAxisY, zAxisZ];
+
+
+    const xAxisXState = useState<number>(1);
+    const [xAxisX] = xAxisXState;
+
+    const xAxisYState = useState<number>(0);
+    const [xAxisY] = xAxisYState;
+
+    const xAxisZState = useState<number>(0);
+    const [xAxisZ] = xAxisZState;
+
+    const basisX: Vec3 = [xAxisX, xAxisY, xAxisZ];
+
+    const crossProduct = function(
+        [x0, y0, z0]: Vec3,
+        [x1, y1, z1]: Vec3,
+    ): Vec3 {
+        return [
+            y0 * z1 - z0 * y1,
+            z0 * x1 - x0 * z1,
+            x0 * y1 - y0 * x1,
+        ];
+    };
+
+    const basisY = crossProduct(basisX, basisZ);
+
     const domPoints = positionArrToDomPointArr(geometry.attributes.position.array).map(
         (p) => implementedTransformer.transformPoint(
             p,
@@ -419,6 +489,12 @@ const VisualExampleSection = function({
                 implementedTransformer.translateToMatrix(
                     new DOMPoint(translateX, translateY, translateZ),
                 ),
+                basisToTransformer(
+                    basisOrigin,
+                    basisX,
+                    basisY,
+                    basisZ,
+                ),
             ].reduce(implementedTransformer.reduceMatrix)
         ),
     );
@@ -431,6 +507,94 @@ const VisualExampleSection = function({
             <h3 className="text-2xl my-4">Vizuālo piemēru konfigurēšana</h3>
 
             <div className="grid grid-cols-[repeat(3,auto)] max-w-fit gap-x-4">
+                <>
+                    <h4 className="text-xl my-4 col-span-3">Skatītāja konfigurācija</h4>
+
+                    <h5 className="col-span-3 font-bold mb-2">Translācija</h5>
+
+                    <RangeSlider
+                        label="Skatītāja x translācija"
+                        name="originX"
+                        state={originXState}
+                        min={-10}
+                        max={10}
+                    />
+
+                    <RangeSlider
+                        label="Skatītāja y translācija"
+                        name="originY"
+                        state={originYState}
+                        min={-10}
+                        max={10}
+                    />
+
+                    <RangeSlider
+                        label="Skatītāja z translācija"
+                        name="originZ"
+                        state={originZState}
+                        min={-10}
+                        max={10}
+                    />
+
+                    <h5 className="col-span-3 font-bold my-2">Skatītāja x-ass</h5>
+
+                    <RangeSlider
+                        label="Skatītāja x-ass x koordināta"
+                        name="xAxisX"
+                        state={xAxisXState}
+                        min={0}
+                        max={10}
+                    />
+
+                    <RangeSlider
+                        label="Skatītāja x-ass y koordināta"
+                        name="xAxisY"
+                        state={xAxisYState}
+                        min={0}
+                        max={10}
+                    />
+
+                    <RangeSlider
+                        label="Skatītāja x-ass z koordināta"
+                        name="xAxisY"
+                        state={xAxisZState}
+                        min={0}
+                        max={10}
+                    />
+
+                    <h5 className="col-span-3 font-bold my-2">Skatītāja z-ass</h5>
+
+                    <RangeSlider
+                        label="Skatītāja z-ass x koordināta"
+                        name="yAxisY"
+                        state={zAxisXState}
+                        min={0}
+                        max={10}
+                    />
+
+                    <RangeSlider
+                        label="Skatītāja z-ass y koordināta"
+                        name="zAxisY"
+                        state={zAxisYState}
+                        min={0}
+                        max={10}
+                    />
+
+                    <RangeSlider
+                        label="Skatītāja z-ass z koordināta"
+                        name="xAxisY"
+                        state={zAxisZState}
+                        min={0}
+                        max={10}
+                    />
+
+                    <h5 className="col-span-3 font-bold my-2">
+                        (!) Skatītāja y-ass tiek automātiski izrēķināta
+                    </h5>
+                </>
+
+                <h4 className="col-span-3 text-xl my-4">Objekta konfigurācija</h4>
+
                 <h4 className="col-span-3 text-xl mb-2">Mērogošana</h4>
 
                 <RangeSlider
@@ -615,12 +779,7 @@ const VisualExampleSection = function({
 
             {pointsToSvg(domPoints.map((p) => implementedTransformer.transformPoint(
                 p,
-                [
-                    implementedTransformer.rotateY(5 * Math.PI / 4),
-                    implementedTransformer.scaleToMatrix(new DOMPoint(1, -1, 1)),
-                    implementedTransformer.translateToMatrix(new DOMPoint(0, 0, 3.0)),
-                    projectionMatrix(perspectiveDepth),
-                ].reduce(implementedTransformer.reduceMatrix),
+                projectionMatrix(perspectiveDepth),
             )))}
 
             <div className="grid grid-cols-[auto_auto_auto] max-w-fit gap-2">
