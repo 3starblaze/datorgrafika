@@ -313,17 +313,93 @@ const domPointArrToSvg = function(
     );
 };
 
+const RangeSlider = function({
+    name,
+    label,
+    state,
+    min,
+    max,
+}: {
+    name: string,
+    label: string,
+    state: [number, (value: number) => void],
+    min: number,
+    max: number,
+}) {
+    return (
+        <>
+            <label htmlFor={name}>{label}</label>
+            <input
+                name={name}
+                type="range"
+                value={state[0]}
+                min={min}
+                max={max}
+                step="any"
+                onChange={(ev) => state[1](Number(ev.target.value))}
+            />
+        </>
+    );
+};
+
 const VisualExampleSection = function({
     geometry,
 }: {
     geometry: BufferGeometry,
 }) {
-    const domPoints = positionArrToDomPointArr(geometry.attributes.position.array);
+    const translateXState = useState<number>(0);
+    const [translateX] = translateXState;
+
+    const translateYState = useState<number>(0);
+    const [translateY] = translateYState;
+
+    const translateZState = useState<number>(0);
+    const [translateZ] = translateZState;
+
+    const domPoints = positionArrToDomPointArr(geometry.attributes.position.array).map(
+        (p) => implementedTransformer.transformPoint(
+            p,
+            implementedTransformer.translateToMatrix(
+                new DOMPoint(translateX, translateY, translateZ),
+            ),
+        ),
+    );
     const indexArr = geometry.index!.array;
     const pointsToSvg = (points: DOMPoint[]) => domPointArrToSvg(points, indexArr);
 
     return (
         <div>
+            <h3 className="text-2xl my-4">Vizuālo piemēru konfigurēšana</h3>
+
+            <div className="grid grid-cols-[repeat(3,auto)] max-w-fit gap-x-4">
+                <RangeSlider
+                    label="X translācija"
+                    name="translateX"
+                    state={translateXState}
+                    min={-5}
+                    max={5}
+                />
+                <p>({translateX.toFixed(2)})</p>
+
+                <RangeSlider
+                    label="Y translācija"
+                    name="translateY"
+                    state={translateYState}
+                    min={-5}
+                    max={5}
+                />
+                <p>({translateY.toFixed(2)})</p>
+
+                <RangeSlider
+                    label="Z translācija"
+                    name="translateZ"
+                    state={translateZState}
+                    min={-5}
+                    max={5}
+                />
+                <p>({translateZ.toFixed(2)})</p>
+            </div>
+
             <h3 className="text-2xl my-4">Vizuāli piemēri</h3>
 
             <h4 className="text-xl my-4">Mērkaķis (z-ass skatītāja virzienā)</h4>
