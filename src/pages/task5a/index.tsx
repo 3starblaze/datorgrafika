@@ -393,6 +393,18 @@ const VisualExampleSection = function({
     const skewXZZState = useState<number>(0);
     const [skewXZZ] = skewXZZState;
 
+    const parallelPerspectiveXState = useState<number>(1);
+    const [parallelPerspectiveX] = parallelPerspectiveXState;
+
+    const parallelPerspectiveYState = useState<number>(1);
+    const [parallelPerspectiveY] = parallelPerspectiveYState;
+
+    const parallelPerspectiveZState = useState<number>(1);
+    const [parallelPerspectiveZ] = parallelPerspectiveZState;
+
+    const perspectiveDepthState = useState<number>(2.0);
+    const [perspectiveDepth] = perspectiveDepthState;
+
     const domPoints = positionArrToDomPointArr(geometry.attributes.position.array).map(
         (p) => implementedTransformer.transformPoint(
             p,
@@ -568,8 +580,36 @@ const VisualExampleSection = function({
 
             {pointsToSvg(domPoints.map((p) => implementedTransformer.transformPoint(
                 p,
-                parallelProjectionMatrix(new DOMPoint(1, 1, 1)),
+                parallelProjectionMatrix(
+                    new DOMPoint(parallelPerspectiveX, parallelPerspectiveY, parallelPerspectiveZ),
+                ),
             )))}
+
+            <div className="grid grid-cols-[auto_auto_auto] max-w-fit gap-x-4">
+                <RangeSlider
+                    label="Perspektīvvektora x"
+                    name="parallelPerspectiveX"
+                    min={0.1}
+                    max={10.0}
+                    state={parallelPerspectiveXState}
+                />
+
+                <RangeSlider
+                    label="Perspektīvvektora y"
+                    name="parallelPerspectiveY"
+                    min={0.1}
+                    max={10.0}
+                    state={parallelPerspectiveYState}
+                />
+
+                <RangeSlider
+                    label="Perspektīvvektora z"
+                    name="parallelPerspectiveZ"
+                    min={0.1}
+                    max={10.0}
+                    state={parallelPerspectiveZState}
+                />
+            </div>
 
             <h4 className="text-xl my-4">Centrālā projekcija</h4>
 
@@ -578,11 +618,20 @@ const VisualExampleSection = function({
                 [
                     implementedTransformer.rotateY(5 * Math.PI / 4),
                     implementedTransformer.scaleToMatrix(new DOMPoint(1, -1, 1)),
-                    /* implementedTransformer.skewXY() */
                     implementedTransformer.translateToMatrix(new DOMPoint(0, 0, 3.0)),
-                    projectionMatrix(5.0),
+                    projectionMatrix(perspectiveDepth),
                 ].reduce(implementedTransformer.reduceMatrix),
             )))}
+
+            <div className="grid grid-cols-[auto_auto_auto] max-w-fit gap-2">
+                <RangeSlider
+                    label="Perspektīvas dziļums (depth)"
+                    name="perspectiveDepth"
+                    state={perspectiveDepthState}
+                    min={0.1}
+                    max={10.0}
+                />
+            </div>
         </div>
     );
 };
