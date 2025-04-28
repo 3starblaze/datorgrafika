@@ -356,14 +356,29 @@ const VisualExampleSection = function({
     const translateZState = useState<number>(0);
     const [translateZ] = translateZState;
 
+    const rotateXState = useState<number>(0);
+    const [rotateX] = rotateXState;
+
+    const rotateYState = useState<number>(0);
+    const [rotateY] = rotateYState;
+
+    const rotateZState = useState<number>(0);
+    const [rotateZ] = rotateZState;
+
     const domPoints = positionArrToDomPointArr(geometry.attributes.position.array).map(
         (p) => implementedTransformer.transformPoint(
             p,
-            implementedTransformer.translateToMatrix(
-                new DOMPoint(translateX, translateY, translateZ),
-            ),
+            [
+                implementedTransformer.rotateX(rotateX),
+                implementedTransformer.rotateY(rotateY),
+                implementedTransformer.rotateZ(rotateZ),
+                implementedTransformer.translateToMatrix(
+                    new DOMPoint(translateX, translateY, translateZ),
+                ),
+            ].reduce(implementedTransformer.reduceMatrix)
         ),
     );
+
     const indexArr = geometry.index!.array;
     const pointsToSvg = (points: DOMPoint[]) => domPointArrToSvg(points, indexArr);
 
@@ -372,6 +387,37 @@ const VisualExampleSection = function({
             <h3 className="text-2xl my-4">Vizuālo piemēru konfigurēšana</h3>
 
             <div className="grid grid-cols-[repeat(3,auto)] max-w-fit gap-x-4">
+                <h4 className="col-span-3 text-xl mb-2">Rotācija</h4>
+
+                <RangeSlider
+                    label="X rotācija"
+                    name="rotateX"
+                    state={rotateXState}
+                    min={-2 * Math.PI}
+                    max={2 * Math.PI}
+                />
+                <p>({rotateX.toFixed(2)})</p>
+
+                <RangeSlider
+                    label="Y rotācija"
+                    name="rotateY"
+                    state={rotateYState}
+                    min={-2 * Math.PI}
+                    max={2 * Math.PI}
+                />
+                <p>({rotateY.toFixed(2)})</p>
+
+                <RangeSlider
+                    label="Z rotācija"
+                    name="rotateZ"
+                    state={rotateZState}
+                    min={-2 * Math.PI}
+                    max={2 * Math.PI}
+                />
+                <p>({rotateZ.toFixed(2)})</p>
+
+                <h4 className="col-span-3 text-xl my-2">Translācija</h4>
+
                 <RangeSlider
                     label="X translācija"
                     name="translateX"
