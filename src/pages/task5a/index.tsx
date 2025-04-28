@@ -167,6 +167,11 @@ const VisualExampleSection = function({
 }: {
     geometry: BufferGeometry,
 }) {
+    // NOTE: For the record, it would be nice to refactor this into something less repetitive.
+    // Producing maintainable software is left as an exercise to the reader.
+
+    // NOTE: Object state
+
     const translateXState = useState<number>(0);
     const [translateX] = translateXState;
 
@@ -619,7 +624,24 @@ export default function () {
                 ]}
             />
 
-            {geometry && (<VisualExampleSection geometry={geometry}/>)}
+            <h3 className="text-2xl my-4">Apraksts</h3>
+
+            <p className="max-w-[40rem] my-2">
+                Piemērā tiek attēlots mērkaķa 3d modelis, kas nāk kopā ar <i>Blender</i> programmu.
+                Šis modelis ir saglabāts kā GLB fails, kurš tiek importēts ar <i>THREE.js</i>. Punkti
+                un indeksi tiek glabāti masīvos un tālāk apstrādāti ar autora izstrādātu programmu.
+            </p>
+            <p className="max-w-[40rem] my-2">
+                Visās attēlojamās projekcijās tiek ņemta vērā skatītāja koordinātas. Lai padarītu
+                koordinātu sistēmu maiņu ērtāku, lekcijas dotā matricu atņemšana + reizināšana tika
+                pārveidota par 4x4 matricu, kura tiek reizināta ar punktiem.
+            </p>
+            <p className="max-w-[40rem] my-2">
+                Piezīme: Skatītāja koordinātu asis netiek normalizētas. Skatītājam tiek ļauts veikt
+                mērogošanu un slīpo nobīdi.
+            </p>
+
+            {geometry && (<VisualExampleSection geometry={geometry} />)}
         </div >
     );
 };
