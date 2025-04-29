@@ -7,6 +7,11 @@ import {
 } from "./main_worker";
 import { rgbToGray } from "./util";
 
+import thisString from ".?raw";
+import mainWorkerString from "./main_worker?raw";
+import utilString from "./util?raw";
+import { SourceCodeSection } from "@/components/source-code";
+
 /**
  * Type for reporting values that can have "loading" state.
  *
@@ -191,19 +196,44 @@ export default function Task() {
 
     return (
         <div>
-            <p className="text-lg">Oriģinālais attēls</p>
+            <h2 className="text-4xl mb-4">Uzdevums (2a)</h2>
+
+            <SourceCodeSection
+                sources={[
+                    { title: "./index", contentString: thisString },
+                    { title: "./main_worker", contentString: mainWorkerString },
+                    { title: "./util", contentString: utilString },
+                ]}
+            />
+
+            <h3 className="text-2xl my-4">Apraksts</h3>
+            <p className="max-w-[40rem] my-2">
+                Galvenā algoritma darbība notiek <pre className="inline text-blue-500">./util
+                </pre> failā. Tika izmantots primitīvs (I)DFT algoritms, kas tika nedaudz paātrināts
+                ar koeficientu saglabāšanu masīvos, jo to bija viegli implementēt.
+            </p>
+            <p className="max-w-[40rem] my-2">
+                Tā kā DFT un IDFT ir laikietilpīgas operācijas, tās tiek veiktas atsevišķos
+                pavedienos, izmantojot <i>Web workers</i>. Galvenā motivācija šim lēmumam bija
+                galvenā pavediena atbrīvošana. Ja galvenais pavediens ir aizņemts, mājaslapas
+                saskarne tiek iesaldēta, kas dod ļoti negatīvu lietotāja pieredzi, it īpaši,
+                ja uz šī uzdevuma cilni uzspiež netīšām. Kā patīkams pārsteigums, abas
+                transformācijas tika pabeigtas ātrāk, jo tās tika veiktas paralēli.
+            </p>
+
+            <h3 className="text-2xl my-4">Oriģinālais attēls</h3>
             <img src={sampleImg} alt="Koda redaktora ekrānuzņēmums" />
 
-            <p className="text-lg">Melnbaltais attēls</p>
+            <h3 className="text-2xl my-4">Melnbaltais attēls</h3>
             <canvas ref={grayscaleCanvasRef} />
 
-            <p className="text-lg">Attēls, kuram pielietota Furjē transformācija</p>
+            <h3 className="text-2xl my-4">Attēls, kuram pielietota Furjē transformācija</h3>
             <MaybeCanvas
                 maybeImageData={fourierTransformData}
                 loadingText="Transformācija tiek veikta, lūdzu uzgaidiet..."
             />
 
-            <p className="text-lg">Attēls, kuram pielietota inversā Furjē transformācija</p>
+            <h3 className="text-2xl my-4">Attēls, kuram pielietota inversā Furjē transformācija</h3>
             <MaybeCanvas
                 maybeImageData={inverseFourierTransformData}
                 loadingText="Inversā transformācija tiek veikta, lūdzu uzgaidiet..."
