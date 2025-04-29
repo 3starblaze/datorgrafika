@@ -1,18 +1,28 @@
-import { fourierTransform } from "./util";
+import { fourierTransform, inverseFourierTransform } from "./util";
 
 export interface FourierTransformRequest {
     id: "fourier_transform_request",
     sourceImageData: ImageData,
 }
 
-export type WorkerRequest = FourierTransformRequest;
+export interface InverseFourierTransformRequest {
+    id: "inverse_fourier_transform_request",
+    sourceImageData: ImageData,
+}
+
+export type WorkerRequest = FourierTransformRequest | InverseFourierTransformRequest;
 
 export interface FourierTransformResult {
     id: "fourier_transform_result",
     imageData: ImageData,
 };
 
-export type WorkerResponse = FourierTransformResult;
+export interface InverseFourierTransformResult {
+    id: "inverse_fourier_transform_result",
+    imageData: ImageData,
+};
+
+export type WorkerResponse = FourierTransformResult | InverseFourierTransformResult;
 
 onmessage = (msg: MessageEvent<WorkerRequest>) => {
     const {data} = msg;
@@ -25,5 +35,13 @@ onmessage = (msg: MessageEvent<WorkerRequest>) => {
                 };
                 postMessage(result);
             })();
+            break;
+        case "inverse_fourier_transform_request":
+            const result: InverseFourierTransformResult = {
+                id: "inverse_fourier_transform_result",
+                imageData: inverseFourierTransform(data.sourceImageData),
+            };
+            postMessage(result);
+            break;
     }
 };

@@ -3,6 +3,7 @@ import sampleImg from "./sample_screenshot.png";
 import MainWorker from "./main_worker?worker";
 import {
     FourierTransformRequest,
+    InverseFourierTransformRequest,
     WorkerResponse,
 } from "./main_worker";
 import { rgbToGray } from "./util";
@@ -37,6 +38,7 @@ export default function Task() {
 
     const grayscaleCanvasRef = useRef<HTMLCanvasElement>(null);
     const transformCanvasRef = useRef<HTMLCanvasElement>(null);
+    const inverseTransformCanvasRef = useRef<HTMLCanvasElement>(null);
 
     const grayscaleImageData = useMemo<ImageData | null>(() => {
         if (imageData === null) return null;
@@ -61,6 +63,8 @@ export default function Task() {
     }, [imageData]);
 
     const [fourierTransformData, setFourierTransformData] = useState<MaybeLoading<ImageData>>(null);
+    const [inverseFourierTransformData, setInverseFourierTransformData] =
+        useState<MaybeLoading<ImageData>>(null);
 
     // NOTE: Worker setup
     useEffect(() => {
@@ -69,7 +73,10 @@ export default function Task() {
             switch (data.id) {
                 case "fourier_transform_result":
                     setFourierTransformData(data.imageData);
-                    console.log("got DFT result!");
+                    break;
+                case "inverse_fourier_transform_result":
+                    setInverseFourierTransformData(data.imageData);
+                    break;
             }
         };
         return () => {
@@ -82,22 +89,36 @@ export default function Task() {
     useEffect(() => {
         if (grayscaleImageData === null) {
             setFourierTransformData(null);
+            setInverseFourierTransformData(null);
             return;
         }
         if (!worker.current) return;
 
         setFourierTransformData("loading");
-        const message: FourierTransformRequest = {
+        setInverseFourierTransformData("loading");
+
+        const sourceImageData = grayscaleImageData;
+
+        const transformMessage: FourierTransformRequest = {
             id: "fourier_transform_request",
-            sourceImageData: grayscaleImageData,
+            sourceImageData,
         };
-        worker.current.postMessage(message);
+        worker.current.postMessage(transformMessage);
+
+        const inverseTransformMessage: InverseFourierTransformRequest = {
+            id: "inverse_fourier_transform_request",
+            sourceImageData,
+        };
+        worker.current.postMessage(inverseTransformMessage);
+
     }, [grayscaleImageData]);
 
 
     useBindImageToCanvas(grayscaleImageData, grayscaleCanvasRef);
 
     useBindImageToCanvas(fourierTransformData, transformCanvasRef);
+
+    useBindImageToCanvas(inverseFourierTransformData, inverseTransformCanvasRef);
 
     useEffect(() => {
         (async () => {
@@ -136,6 +157,15 @@ export default function Task() {
                 </div>
             )}
             <canvas ref={transformCanvasRef} />
+
+            <p className="text-lg">Attēls, kuram pielietota inversā Furjē transformācija</p>
+            {(inverseFourierTransformData === "loading") && (
+                <div className="flex gap-4 mt-2 items-center">
+                    <p className="text-gray-500">Inversā transformācija tiek veikta, lūdzu uzgaidiet...</p>
+                    <div className="h-4 w-4 bg-gray-500 animate-spin"></div>
+                </div>
+            )}
+            <canvas ref={inverseTransformCanvasRef} />
         </div>
     );
 };
