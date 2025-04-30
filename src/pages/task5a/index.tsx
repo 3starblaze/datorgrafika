@@ -231,13 +231,15 @@ const VisualExampleSection = function({
 
     // NOTE: Viewer state
 
+    // NOTE: View is translated so that the viewer is outside the object and the perspective
+    // projection looks okay
     const originXState = useState<number>(0);
     const [originX] = originXState;
 
-    const originYState = useState<number>(0);
+    const originYState = useState<number>(-1);
     const [originY] = originYState;
 
-    const originZState = useState<number>(0);
+    const originZState = useState<number>(-2);
     const [originZ] = originZState;
 
     const basisOrigin: Vec3 = [originX, originY, originZ];
