@@ -3,6 +3,7 @@ import Task1b from "./pages/task1b";
 import Task2a from "./pages/task2a";
 import Task3d from "./pages/task3d";
 import Task5a from "./pages/task5a";
+import Task10a from "./pages/task10a";
 import {
     Tabs,
     TabsContent,
@@ -24,6 +25,7 @@ function App() {
                     <TabsTrigger value="task_2a">Uzdevums 2a</TabsTrigger>
                     <TabsTrigger value="task_3d">Uzdevums 3d</TabsTrigger>
                     <TabsTrigger value="task_5a">Uzdevums 5a</TabsTrigger>
+                    <TabsTrigger value="task_10a">Uzdevums 10a</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="init">
@@ -40,6 +42,9 @@ function App() {
                 </TabsContent>
                 <TabsContent value="task_5a">
                     <Task5a />
+                </TabsContent>
+                <TabsContent value="task_10a">
+                    <Task10a />
                 </TabsContent>
             </Tabs>
         </div>
