@@ -19,6 +19,42 @@ const imageToImageData = async function (imageSource: string) {
     return context.getImageData(0, 0, image.width, image.height);
 };
 
+// NOTE: % gives remainder which is negative
+const mod = function(n: number, m: number) {
+    return ((n % m) + m) % m;
+};
+
+const interpolateNearestNeighbor = function (
+    imageData: ImageData,
+    width: number,
+    height: number,
+): ImageData {
+    const byteCount = 4 * width * height;
+    const res = new ImageData(
+        new Uint8ClampedArray(byteCount),
+        width,
+        height,
+    );
+
+    for (let i = 0; i < byteCount; i += 4) {
+        const gridIndex = i/4;
+
+        const x = mod(gridIndex, width);
+        const y = Math.floor(gridIndex / width);
+
+        const targetX = Math.round((x / width) * imageData.width);
+        const targetY = Math.round((y / height) * imageData.height);
+        const targetGridIndex = targetX + targetY * imageData.width;
+
+        res.data[4 * gridIndex + 0] = imageData.data[4 * targetGridIndex + 0];
+        res.data[4 * gridIndex + 1] = imageData.data[4 * targetGridIndex + 1];
+        res.data[4 * gridIndex + 2] = imageData.data[4 * targetGridIndex + 2];
+        res.data[4 * gridIndex + 3] = imageData.data[4 * targetGridIndex + 3];
+    }
+
+    return res;
+};
+
 const ImageDataDisplay = function ({
     imageData,
 }: {
@@ -54,6 +90,13 @@ const LoadedComponent = function ({
         <div>
             <h3 className="text-2xl my-4">Oriģinālais attēls</h3>
             <ImageDataDisplay imageData={sourceImageData} />
+
+            <h3 className="text-2xl my-4">Nearest neighbor (400x200)</h3>
+            <ImageDataDisplay imageData={interpolateNearestNeighbor(
+                sourceImageData,
+                400,
+                200,
+            )} />
         </div>
     );
 };
