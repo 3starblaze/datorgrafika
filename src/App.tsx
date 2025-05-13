@@ -5,6 +5,7 @@ import Task3d from "./pages/task3d";
 import Task5a from "./pages/task5a";
 import Task8a from "./pages/task8a";
 import Task10a from "./pages/task10a";
+import Task11b from "./pages/task11b";
 import {
     Tabs,
     TabsContent,
@@ -26,6 +27,7 @@ const tabs: TabInfo[] = [
     { key: "task_5a", title: "Uzdevums 5a", component: Task5a },
     { key: "task_8a", title: "Uzdevums 8a", component: Task8a },
     { key: "task_10a", title: "Uzdevums 10a", component: Task10a },
+    { key: "task_11b", title: "Uzdevums 11b", component: Task11b },
 ];
 
 function App() {
