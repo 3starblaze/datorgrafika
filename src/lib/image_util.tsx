@@ -31,7 +31,7 @@ export const mod = function(n: number, m: number) {
     return ((n % m) + m) % m;
 };
 
-export const imageToImageData = async function (imageSource: string): ImageData {
+export const imageToImageData = async function (imageSource: string): Promise<ImageData> {
     const image = new Image();
     const loadPromise = new Promise<void>((resolve) => {
         image.addEventListener("load", () => resolve());
@@ -79,3 +79,7 @@ export const AsyncAwareImageDataDisplay = function({
         <ReadyComponent imageData={imageData} />
     );
 }
+
+export const rgbToGray = function (r: number, g: number, b: number) {
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+};
