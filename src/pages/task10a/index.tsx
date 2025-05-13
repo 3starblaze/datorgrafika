@@ -1,5 +1,9 @@
-import { useEffect, useRef, useState } from "react";
-import sampleImg from "./sample_screenshot.png";
+import {
+    AsyncAwareImageDataDisplay,
+    ImageDataDisplay,
+    mod,
+} from "@/lib/image_util";
+import sampleImg from "@/lib/sample_screenshot.png";
 
 type Kernel = {
     squareLength: number,
@@ -38,11 +42,6 @@ const gaussianBlur5: Kernel = {
 const isKernelValid = function ({ squareLength, data }: Kernel) {
     // NOTE: Kernel must be odd-sized because the kernel must have a central element
     return (squareLength % 2 === 1) && (squareLength * squareLength == data.length);
-};
-
-// NOTE: % gives remainder which is negative
-const mod = function(n: number, m: number) {
-    return ((n % m) + m) % m;
 };
 
 const imageDataToConvolvedImageData = function(
@@ -96,56 +95,12 @@ const imageDataToConvolvedImageData = function(
     return res;
 };
 
-const imageToImageData = async function (imageSource: string) {
-    const image = new Image();
-    const loadPromise = new Promise<void>((resolve) => {
-        image.addEventListener("load", () => resolve());
-    });
-
-    image.src = imageSource;
-    await loadPromise;
-    const context = Object.assign(document.createElement('canvas'), {
-        width: image.width,
-        height: image.height
-    }).getContext('2d');
-    if (!context) throw new Error("couldn't get context!");
-    context.imageSmoothingEnabled = false;
-    context.drawImage(image, 0, 0);
-    return context.getImageData(0, 0, image.width, image.height);
-};
-
-const ImageDataDisplay = function({
+const ReadyComponent = function({
     imageData,
 }: {
     imageData: ImageData,
 }) {
-    const canvasRef = useRef<HTMLCanvasElement | null>(null);
-
-    useEffect(() => {
-        const canvas = canvasRef.current;
-        if (!canvas) return;
-
-        const ctx = canvas.getContext("2d");
-        if (!ctx) return;
-
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        canvas.width = imageData.width;
-        canvas.height = imageData.height;
-        ctx.putImageData(imageData, 0, 0);
-    }, [canvasRef, imageData]);
-
-    return (
-        <canvas ref={canvasRef} />
-    );
-};
-
-const LoadedComponent = function({
-    sourceImageData,
-}: {
-    sourceImageData: ImageData,
-}) {
-    const conv = (kernel: Kernel) => imageDataToConvolvedImageData(sourceImageData, kernel);
+    const conv = (kernel: Kernel) => imageDataToConvolvedImageData(imageData, kernel);
 
     const boxBlur3ImageData = conv(boxBlur3);
     const gaussianBlur3ImageData = conv(gaussianBlur3);
@@ -153,7 +108,7 @@ const LoadedComponent = function({
     return (
         <div>
             <h3 className="text-2xl my-4">Oriģinālais attēls</h3>
-            <ImageDataDisplay imageData={sourceImageData} />
+            <ImageDataDisplay imageData={imageData} />
 
             <h3 className="text-2xl my-4">Box blur 3 attēls</h3>
             <ImageDataDisplay imageData={boxBlur3ImageData} />
@@ -169,21 +124,11 @@ const LoadedComponent = function({
 
 
 export default function () {
-    // NOTE: We have to jump through some hoops because imageData retrieval is async and component
-    // logic would quickly become messy when every derived image checks for source imageData
-    // existence.
-    const [imageData, setImageData] = useState<ImageData | null>(null);
-
-    useEffect(() => {
-        (async () => {
-            setImageData(await imageToImageData(sampleImg));
-        })()
-    }, []);
-
-
-    return (imageData === null) ? (
-        <p>Lūdzu uzgaidiet</p>
-    ) : (
-        <LoadedComponent sourceImageData={imageData} />
+    return (
+        <AsyncAwareImageDataDisplay
+            imgUrl={sampleImg}
+            PlaceholderComponent={() => (<p>Lūdzu uzgaidiet</p>)}
+            ReadyComponent={ReadyComponent}
+        />
     );
 };

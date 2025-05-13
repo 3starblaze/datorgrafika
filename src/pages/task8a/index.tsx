@@ -1,28 +1,9 @@
-import { useEffect, useRef, useState } from "react";
-import sampleImg from "./sample_screenshot.png";
-
-const imageToImageData = async function (imageSource: string) {
-    const image = new Image();
-    const loadPromise = new Promise<void>((resolve) => {
-        image.addEventListener("load", () => resolve());
-    });
-
-    image.src = imageSource;
-    await loadPromise;
-    const context = Object.assign(document.createElement('canvas'), {
-        width: image.width,
-        height: image.height
-    }).getContext('2d');
-    if (!context) throw new Error("couldn't get context!");
-    context.imageSmoothingEnabled = false;
-    context.drawImage(image, 0, 0);
-    return context.getImageData(0, 0, image.width, image.height);
-};
-
-// NOTE: % gives remainder which is negative
-const mod = function(n: number, m: number) {
-    return ((n % m) + m) % m;
-};
+import { useEffect, useRef } from "react";
+import {
+    AsyncAwareImageDataDisplay,
+    mod,
+} from "@/lib/image_util";
+import sampleImg from "@/lib/sample_screenshot.png";
 
 const interpolateNearestNeighbor = function (
     imageData: ImageData,
@@ -143,26 +124,26 @@ const ImageDataDisplay = function ({
     );
 };
 
-const LoadedComponent = function ({
-    sourceImageData,
+const ReadyComponent = function ({
+    imageData,
 }: {
-    sourceImageData: ImageData,
+    imageData: ImageData,
 }) {
     return (
         <div>
             <h3 className="text-2xl my-4">Oriģinālais attēls</h3>
-            <ImageDataDisplay imageData={sourceImageData} />
+            <ImageDataDisplay imageData={imageData} />
 
             <h3 className="text-2xl my-4">Nearest neighbor (400x200)</h3>
             <ImageDataDisplay imageData={interpolateNearestNeighbor(
-                sourceImageData,
+                imageData,
                 400,
                 200,
             )} />
 
             <h3 className="text-2xl my-4">Bilinear interpolation (400x200)</h3>
             <ImageDataDisplay imageData={interpolateBilinear(
-                sourceImageData,
+                imageData,
                 400,
                 200,
             )} />
@@ -171,21 +152,11 @@ const LoadedComponent = function ({
 };
 
 export default function () {
-    // NOTE: We have to jump through some hoops because imageData retrieval is async and component
-    // logic would quickly become messy when every derived image checks for source imageData
-    // existence.
-    const [imageData, setImageData] = useState<ImageData | null>(null);
-
-    useEffect(() => {
-        (async () => {
-            setImageData(await imageToImageData(sampleImg));
-        })()
-    }, []);
-
-
-    return (imageData === null) ? (
-        <p>Lūdzu uzgaidiet</p>
-    ) : (
-        <LoadedComponent sourceImageData={imageData} />
+    return (
+        <AsyncAwareImageDataDisplay
+            imgUrl={sampleImg}
+            PlaceholderComponent={() => (<p>Lūdzu uzgaidiet</p>)}
+            ReadyComponent={ReadyComponent}
+        />
     );
 };
