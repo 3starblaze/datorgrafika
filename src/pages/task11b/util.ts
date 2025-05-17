@@ -143,7 +143,6 @@ export const findRegions = function (imageData: ImageData): RegionsInfo {
     };
 };
 
-// FIXME: Broken
 /**
  * Create a new RegionsInfo object by merging oldRegion into destinationRegion.
  */
@@ -279,7 +278,6 @@ export const colorGraphGreedily = function (
 };
 
 
-// FIXME: Broken
 /**
  * Make a new regionsInfo by going through regions and merging similar regions.
  */
