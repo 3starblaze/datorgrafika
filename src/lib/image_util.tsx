@@ -83,3 +83,28 @@ export const AsyncAwareImageDataDisplay = function({
 export const rgbToGray = function (r: number, g: number, b: number) {
     return 0.2126 * r + 0.7152 * g + 0.0722 * b;
 };
+
+export const imageDataToGrayscale = function(imageData: ImageData) {
+    const { width, height } = imageData;
+
+    const res = new ImageData(
+        new Uint8ClampedArray(imageData.data.length),
+        width,
+        height,
+    );
+
+    for (let i = 0; i < width * height * 4; i += 4) {
+
+        const value = rgbToGray(
+            imageData.data[i + 0],
+            imageData.data[i + 1],
+            imageData.data[i + 2],
+        );
+        res.data[i + 0] = value;
+        res.data[i + 1] = value;
+        res.data[i + 2] = value;
+        res.data[i + 3] = 255; // NOTE: Full opacity
+    }
+
+    return res;
+};

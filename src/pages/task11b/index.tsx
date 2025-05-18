@@ -3,12 +3,12 @@ import sampleImg from "@/lib/sample_screenshot.png";
 import {
     AsyncAwareImageDataDisplay,
     ImageDataDisplay,
+    imageDataToGrayscale,
 } from "@/lib/image_util";
 import {
     colorGraphGreedily,
     colorInfoToImageData,
     findRegions,
-    grayscaleMap,
     performMergePass,
     RegionsInfo,
     regionsInfoSanityCheck,
@@ -67,7 +67,7 @@ const ReadyComponent = function ({
 }: {
     imageData: ImageData,
 }) {
-    const grayscaleImageData = grayscaleMap(imageData);
+    const grayscaleImageData = imageDataToGrayscale(imageData);
     const growOnlyRegionsInfo = findRegions(grayscaleImageData);
     const growOnlyRegionsInfoWithMergePass = performMergePass(growOnlyRegionsInfo);
 
