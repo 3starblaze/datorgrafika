@@ -10,16 +10,19 @@ import {
     findRegions,
     grayscaleMap,
     performMergePass,
+    RegionsInfo,
+    regionsInfoSanityCheck,
     rgbStringToTuple,
 } from "./util";
+import { useEffect } from "react";
 
-const ReadyComponent = function ({
+const RegionInfoDisplay = function({
     imageData,
+    regionsInfo,
 }: {
     imageData: ImageData,
+    regionsInfo: RegionsInfo,
 }) {
-    const grayscaleImageData = grayscaleMap(imageData);
-    const regionsInfo = performMergePass(findRegions(grayscaleImageData));
     const colorInfo = colorGraphGreedily(regionsInfo.regionAdjacencyList);
 
     // TODO: Gracefully handle lack of color values
@@ -37,13 +40,6 @@ const ReadyComponent = function ({
 
     return (
         <div>
-            <h3 className="text-2xl my-4">Oriģinālais attēls</h3>
-            <ImageDataDisplay imageData={imageData} />
-
-            <h3 className="text-2xl my-4">Melnbaltais attēls</h3>
-            <ImageDataDisplay imageData={grayscaleImageData} />
-
-            <h3 className="text-2xl my-4">Attēls sadalīts reģionos</h3>
             <ImageDataDisplay imageData={colorInfoToImageData(
                 imageData,
                 regionsInfo,
@@ -62,6 +58,38 @@ const ReadyComponent = function ({
                     />
                 ))}
             </div>
+        </div>
+    );
+};
+
+const ReadyComponent = function ({
+    imageData,
+}: {
+    imageData: ImageData,
+}) {
+    const grayscaleImageData = grayscaleMap(imageData);
+    const growOnlyRegionsInfo = findRegions(grayscaleImageData);
+    const growOnlyRegionsInfoWithMergePass = performMergePass(growOnlyRegionsInfo);
+
+    return (
+        <div>
+            <h3 className="text-2xl my-4">Oriģinālais attēls</h3>
+            <ImageDataDisplay imageData={imageData} />
+
+            <h3 className="text-2xl my-4">Melnbaltais attēls</h3>
+            <ImageDataDisplay imageData={grayscaleImageData} />
+
+            <h3 className="text-2xl my-4">Attēls sadalīts reģionos (v1)</h3>
+            <RegionInfoDisplay
+                imageData={grayscaleImageData}
+                regionsInfo={growOnlyRegionsInfo}
+            />
+
+            <h3 className="text-2xl my-4">Attēls sadalīts reģionos (v2)</h3>
+            <RegionInfoDisplay
+                imageData={grayscaleImageData}
+                regionsInfo={growOnlyRegionsInfoWithMergePass}
+            />
         </div>
     );
 };

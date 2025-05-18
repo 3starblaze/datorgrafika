@@ -277,12 +277,79 @@ export const colorGraphGreedily = function (
     };
 };
 
+// NOTE: For some reason iterators don't have mapping functionality, so we are making our own
+export const iterMap = function<T, U>(
+    iterable: Iterable<T>,
+    callbackFn: (val: T) => U,
+): U[] {
+    const res: U[] = [];
+
+    for (const val of iterable) {
+        res.push(callbackFn(val));
+    }
+
+    return res;
+}
+
+// NOTE: Similar reason for existence as `iterMap`
+export const iterEach = function<T>(
+    iterable: Iterable<T>,
+    callbackFn: (val: T) => void,
+): void {
+    for (const val of iterable) {
+        callbackFn(val);
+    }
+}
+
+export const mutableMergeRegionsMultiple = function (
+    regionsInfo: RegionsInfo,
+    destinationRegionId: number,
+    oldRegionIds: Set<number>,
+) {
+    const destinationRegion = throwingMapGet(regionsInfo.regions, destinationRegionId);
+    const oldRegions = iterMap(oldRegionIds, (id) => throwingMapGet(regionsInfo.regions, id));
+
+
+    const newRegion: Region = {
+        id: destinationRegionId,
+        pixels: new Set([
+            ...destinationRegion.pixels.values(),
+            ...oldRegions.map((region) => [...region.pixels.values()]).flat()
+        ]),
+        sum: destinationRegion.sum + oldRegions.reduce((acc, reg) => acc + reg.sum, 0),
+    };
+
+    // NOTE: Correct pixelToRegionMap
+    oldRegions.forEach((region) => {
+        region.pixels.forEach((pixelIndex) => {
+            regionsInfo.pixelToRegionMap.set(pixelIndex, destinationRegionId);
+        });
+    });
+
+    const destinationRegionAdjacenyList = throwingMapGet(
+        regionsInfo.regionAdjacencyList,
+        destinationRegionId
+    );
+
+    // NOTE: Remove stale regions
+    oldRegionIds.forEach((id) => {
+        regionsInfo.regions.delete(id);
+        regionsInfo.regionAdjacencyList.delete(id);
+        destinationRegionAdjacenyList.delete(id);
+    });
+
+    // NOTE: Destination region inherits itself as a neighbor, that should be deleted
+    destinationRegionAdjacenyList.delete(destinationRegionId);
+
+    regionsInfo.regions.set(destinationRegionId, newRegion);
+}
+
 
 /**
  * Make a new regionsInfo by going through regions and merging similar regions.
  */
 export const performMergePass = function(
-    regionsInfo: RegionsInfo
+    oldRegionsInfo: RegionsInfo,
 ): RegionsInfo {
     // TODO: make the predicate as a function argument?
     const predicate = function (r0: Region, r1: Region) {
@@ -291,84 +358,66 @@ export const performMergePass = function(
         return Math.abs((r0.sum / r0.pixels.size) - (r1.sum / r1.pixels.size)) < 25;
     };
 
-    const edgesToProcess = new Set<string>();
-    const serializeEdge = (v0: number, v1: number) => {
-        // NOTE: We are sorting vertices because [v0, v1] is the same edge as [v1, v0] and this
-        // normalization will help us avoid double-counting the same edge.
-        return `[${Math.min(v0, v1)},${Math.max(v0, v1)}]`
-    };
-    const deserializeEdge = (s: string): [number, number] => {
-        const val = JSON.parse(s);
-        if (
-            Array.isArray(val)
-            && val.length == 2
-            && typeof val[0] === "number"
-            && typeof val[1] === "number"
-        )  {
-            return [val[0], val[1]];
-        }
+    const regionsInfo = structuredClone(oldRegionsInfo);
 
-        throw new Error("could not deserialize edge!");
-    };
+    // NOTE: key region -- old region, value region -- the new region
+    // NOTE: In the beginning nothing is merged and thus every key maps to itself but as the time
+    // goes on, the regions get merged. It's important to keep this info because, for example, if
+    // b is merged into a and c wants to merge into b, it actually wants to merge into a because
+    // b will not exist in next pass.
+    const currentRegionToActualRegion = new Map<number, number>(
+        [...regionsInfo.regions.keys()].map((id) => [id, id])
+    );
+    // NOTE: All regions in value set will be merged into key region
+    const mergeMap = new Map<number, Set<number>>();
 
+    for (const [v0, neighbors] of regionsInfo.regionAdjacencyList) {
+        for (const v1 of neighbors) {
+            // NOTE: Processing edges in ascending order to avoid double counting
+            if (v0 > v1) continue;
 
-    for (const [vertex, neighbors] of regionsInfo.regionAdjacencyList) {
-        for (const neighbor of neighbors) {
-            edgesToProcess.add(serializeEdge(vertex, neighbor));
+            const v0Region = throwingMapGet(regionsInfo.regions, v0);
+            const v1Region = throwingMapGet(regionsInfo.regions, v1);
+
+            if (predicate(v0Region, v1Region)) {
+                const resolvedV0 = throwingMapGet(currentRegionToActualRegion, v0);
+                const resolvedV1 = throwingMapGet(currentRegionToActualRegion, v1);
+
+                const realV0 = Math.min(resolvedV0, resolvedV1);
+                const realV1 = Math.max(resolvedV0, resolvedV1);
+
+                let maybeMergeSet = mergeMap.get(realV0);
+
+                if (maybeMergeSet === undefined) {
+                    maybeMergeSet = new Set();
+                    mergeMap.set(realV0, maybeMergeSet);
+                }
+
+                maybeMergeSet.add(realV1);
+                currentRegionToActualRegion.set(realV1, realV0);
+
+                // NOTE: If v1 has a merge set, we have to merge the v1 set
+                const maybeV1MergeSet = mergeMap.get(realV1);
+                if (maybeV1MergeSet !== undefined) {
+                    for (const v of maybeMergeSet) {
+                        // NOTE: Put into merge set
+                        maybeMergeSet.add(v);
+                        // NOTE: Fix currentRegionToActualRegion mapping
+                        currentRegionToActualRegion.set(v, realV0);
+                    }
+                    // NOTE: The old set has been merged and is no longer needed
+                    mergeMap.delete(realV1);
+                }
+            }
         }
     }
 
-    let iterCounter = 0;
+    iterEach(mergeMap.entries(), ([destination, sources]) => {
+        mutableMergeRegionsMultiple(regionsInfo, destination, sources);
+    });
 
-    while (edgesToProcess.size !== 0) {
-        const serializedEdge = edgesToProcess.values().next().value;
-        // NOTE: this should never happen because edgesToProcess.size !== 0
-        if (serializedEdge === undefined) throw new Error("unexpected missing edge");
-
-        edgesToProcess.delete(serializedEdge);
-        const [v0, v1] = deserializeEdge(serializedEdge);
-
-        const v0Region = throwingMapGet(regionsInfo.regions, v0);
-        const v1Region = throwingMapGet(regionsInfo.regions, v1);
-
-        // HACK: We somehow always end up with stale edges and we do this check to compensate
-        if (!throwingMapGet(regionsInfo.regionAdjacencyList, v0).has(v1)) continue;
-
-        // HACK: We should never end up with situation but we do
-        if (v0 === v1) continue;
-
-        if (predicate(v0Region, v1Region)) {
-            const newRegionsInfo = mergeRegions(regionsInfo, v0, v1);
-
-            // NOTE: invalidate all edges that contain v0
-            for (const neighbor of throwingMapGet(regionsInfo.regionAdjacencyList, v0)) {
-                edgesToProcess.delete(serializeEdge(v0, neighbor));
-            }
-
-            // NOTE: invalidate all edges that contain v1
-            for (const neighbor of throwingMapGet(regionsInfo.regionAdjacencyList, v1)) {
-                edgesToProcess.delete(serializeEdge(v1, neighbor));
-            }
-
-            // NOTE: Add all new edges that contain v0
-            // NOTE: A natural question may arise, why were the old v0 edges deleted and the answer
-            // is that perhaps we have gone through an edge which was not previously mergeable but is
-            // now mergeable. Actually the v0 deletion step might not be needed since the only neighbor
-            // that v0 is losing is v1 but it's "safer" to keep it as is.
-            for (const neighbor of throwingMapGet(newRegionsInfo.regionAdjacencyList, v0)) {
-                if (neighbor === v0 || neighbor === v1) continue;
-                edgesToProcess.add(serializeEdge(v0, neighbor));
-            }
-
-            regionsInfo = newRegionsInfo;
-        }
-        iterCounter++;
-    }
-
-    // FIXME: Deep copy regionsInfo. If there is nothing to merge, regionsInfo will be shallowly
-    // copied!
     return regionsInfo;
-}
+};
 
 export const colorInfoToImageData = function (
     imageData: ImageData,
@@ -418,4 +467,39 @@ export const rgbStringToTuple = function(rgbString: string): [number, number, nu
     }
 
     return [r, g, b];
+};
+
+
+/**
+ * Check regionsInfo integrity by returning a list of human-readable error strings.
+ */
+export const regionsInfoSanityCheck = function(
+    regionsInfo: RegionsInfo,
+): string[] {
+    const errors: string[] = [];
+    const availableIds = new Set([...regionsInfo.regions.keys()]);
+
+    for (const [k, v] of regionsInfo.regions) {
+        if (v.id !== k) errors.push(`id mismatch -- this.regions.get(${k}).id === ${v}`);
+    }
+
+    [...regionsInfo.pixelToRegionMap.entries()].forEach(([k, v]) => {
+        if (!availableIds.has(v)) errors.push(
+            `dangling id at this.pixelToRegionMap.get(${k}) = ${v}`
+        );
+    });
+
+    for (const [k, v] of regionsInfo.regionAdjacencyList) {
+        if (!availableIds.has(k)) {
+            errors.push(`dangling adjacency list this.regionAdjacencyList.get(${k})`);
+        } else {
+            for (const id of v) {
+                if (!availableIds.has(id)) {
+                    errors.push(`dangling id at this.regionAdjacencyList.get(${k}).has(${id})`);
+                }
+            }
+        }
+    }
+
+    return errors;
 };
