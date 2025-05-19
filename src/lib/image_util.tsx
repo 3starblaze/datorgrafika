@@ -80,6 +80,42 @@ export const AsyncAwareImageDataDisplay = function({
     );
 }
 
+
+/**
+ * Like `AsyncAwareImageDataDisplay` but for awaiting multiple images.
+ */
+export const AsyncAwareMultiImageDataDisplay = function<K extends string>({
+    imageUrlMap,
+    PlaceholderComponent,
+    ReadyComponent
+}: {
+    imageUrlMap: { [key in K]: string },
+    PlaceholderComponent: React.FC,
+    ReadyComponent: React.FC<{ imageDataMap: { [key in K]: ImageData } }>,
+}) {
+    const [imageDataMap, setImageDataMap] = useState<{ [key in K]: ImageData } | null>(null);
+
+    useEffect(() => {
+        (async () => {
+            const entries = Object.entries(imageUrlMap) as [K, string][];
+
+            const imageDatas = await Promise.all(entries.map(([_, url]) => imageToImageData(url)));
+
+            let obj = {} as { [key in K]: ImageData };
+
+            entries.forEach(([k], i) => obj[k] = imageDatas[i]);
+
+            setImageDataMap(obj);
+        })()
+    }, []);
+
+    return (imageDataMap === null) ? (
+        <PlaceholderComponent />
+    ) : (
+        <ReadyComponent imageDataMap={imageDataMap} />
+    );
+};
+
 export const rgbToGray = function (r: number, g: number, b: number) {
     return 0.2126 * r + 0.7152 * g + 0.0722 * b;
 };

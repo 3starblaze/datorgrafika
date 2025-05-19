@@ -1,9 +1,10 @@
 import {
-    AsyncAwareImageDataDisplay,
+    AsyncAwareMultiImageDataDisplay,
     ImageDataDisplay,
     imageDataToGrayscale,
 } from "@/lib/image_util";
 import sampleImg from "@/lib/sample_screenshot.png";
+import samplePhoto from "@/lib/sample_photo.jpg"
 
 
 const getHistogram = function(imageData: ImageData) {
@@ -25,10 +26,10 @@ const HistogramDisplay = function({
     imageData: ImageData,
 }) {
     const histogram = getHistogram(imageData);
-    const n = imageData.width * imageData.height;
+    const histMax = Math.max(...histogram);
 
     const histogramLog = histogram.map((v) => Math.log(v + 1));
-    const logN = Math.log(n + 1);
+    const logNMax = Math.log(histMax)
 
     return (
         <div>
@@ -39,7 +40,7 @@ const HistogramDisplay = function({
                         key={i}
                         className="bg-black w-full"
                         style={{
-                            height: `${100 * (value / n)}%`,
+                            height: `${100 * (value / histMax)}%`,
                         }}>
                     </div>
                 ))}
@@ -51,7 +52,7 @@ const HistogramDisplay = function({
                         key={i}
                         className="bg-black w-full"
                         style={{
-                            height: `${100 * (value / logN)}%`,
+                            height: `${100 * (value / logNMax)}%`,
                         }}>
                     </div>
                 ))}
@@ -60,29 +61,49 @@ const HistogramDisplay = function({
     );
 }
 
+type ImageUrlMap = {
+    screenshot: string,
+    photo: string,
+};
+
 const ReadyComponent = function ({
-    imageData,
+    imageDataMap,
 }: {
-    imageData: ImageData,
+    imageDataMap: {[key in keyof ImageUrlMap]: ImageData},
 }) {
+    const { screenshot, photo } = imageDataMap;
+
     return (
         <div>
             <h3 className="text-2xl my-4">Oriģinālais attēls</h3>
-            <ImageDataDisplay imageData={imageData} />
+            <ImageDataDisplay imageData={screenshot} />
 
             <h3 className="text-2xl my-4">Melnbaltais attēls</h3>
-            <ImageDataDisplay imageData={imageDataToGrayscale(imageData)} />
+            <ImageDataDisplay imageData={imageDataToGrayscale(screenshot)} />
 
-            <HistogramDisplay imageData={imageData} />
+            <HistogramDisplay imageData={screenshot} />
+
+            <h3 className="text-2xl my-4">Oriģinālais attēls</h3>
+            <ImageDataDisplay imageData={photo} />
+
+            <h3 className="text-2xl my-4">Melnbaltais attēls</h3>
+            <ImageDataDisplay imageData={imageDataToGrayscale(photo)} />
+
+            <HistogramDisplay imageData={photo} />
         </div>
     );
 };
 
 export default function () {
+    const imageUrlMap: ImageUrlMap = {
+        screenshot: sampleImg,
+        photo: samplePhoto,
+    };
+
     return (
-        <AsyncAwareImageDataDisplay
-            imgUrl={sampleImg}
-            PlaceholderComponent={() => (<p>Lūdzu uzgaidiet</p>)}
+        <AsyncAwareMultiImageDataDisplay
+            imageUrlMap={imageUrlMap}
+            PlaceholderComponent = {() => (<p>Lūdzu uzgaidiet</p>)}
             ReadyComponent={ReadyComponent}
         />
     );
