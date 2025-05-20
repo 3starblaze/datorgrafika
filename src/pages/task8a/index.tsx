@@ -1,6 +1,7 @@
-import { useEffect, useRef } from "react";
 import {
     AsyncAwareImageDataDisplay,
+    ImageDataDisplay,
+    imageDataToGrayscale,
     mod,
 } from "@/lib/image_util";
 import sampleImg from "@/lib/sample_screenshot.png";
@@ -98,55 +99,50 @@ const interpolateBilinear = function (
     return res;
 }
 
-const ImageDataDisplay = function ({
-    imageData,
-}: {
-    imageData: ImageData,
-}) {
-    const canvasRef = useRef<HTMLCanvasElement | null>(null);
-
-    useEffect(() => {
-        const canvas = canvasRef.current;
-        if (!canvas) return;
-
-        const ctx = canvas.getContext("2d");
-        if (!ctx) return;
-
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        canvas.width = imageData.width;
-        canvas.height = imageData.height;
-        ctx.putImageData(imageData, 0, 0);
-    }, [canvasRef, imageData]);
-
-    return (
-        <canvas ref={canvasRef} />
-    );
-};
-
 const ReadyComponent = function ({
     imageData,
 }: {
     imageData: ImageData,
 }) {
+    const grayscale = imageDataToGrayscale(imageData);
+
+    const width = 400;
+    const height = 200;
+
+    const upscaleStyle = {
+        width: 2 * width,
+        height: 2 * height,
+        // NOTE: Force pixelated rendering in order to faithfully demonstrate the results
+        imageRendering: "pixelated",
+    } as const;
+
+    const widthHeightString = `${width}x${height}px`;
+
     return (
         <div>
             <h3 className="text-2xl my-4">Oriģinālais attēls</h3>
             <ImageDataDisplay imageData={imageData} />
 
-            <h3 className="text-2xl my-4">Nearest neighbor (400x200)</h3>
-            <ImageDataDisplay imageData={interpolateNearestNeighbor(
-                imageData,
-                400,
-                200,
-            )} />
+            <h3 className="text-2xl my-4">Melnbaltais attēls</h3>
+            <ImageDataDisplay imageData={grayscale} />
 
-            <h3 className="text-2xl my-4">Bilinear interpolation (400x200)</h3>
-            <ImageDataDisplay imageData={interpolateBilinear(
-                imageData,
-                400,
-                200,
-            )} />
+            <h3 className="text-2xl my-4">Nearest neighbor {widthHeightString}</h3>
+            <ImageDataDisplay
+                style={upscaleStyle}
+                imageData={interpolateNearestNeighbor(
+                    grayscale,
+                    width,
+                    height,
+                )} />
+
+            <h3 className="text-2xl my-4">Bilinear interpolation {widthHeightString}</h3>
+            <ImageDataDisplay
+                style={upscaleStyle}
+                imageData={interpolateBilinear(
+                    grayscale,
+                    width,
+                    height,
+                )} />
         </div>
     );
 };

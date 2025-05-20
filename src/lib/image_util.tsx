@@ -1,10 +1,11 @@
-import { useEffect, useRef, useState } from "react";
+import { JSX, useEffect, useRef, useState } from "react";
 
 export const ImageDataDisplay = function ({
     imageData,
+    ...props
 }: {
     imageData: ImageData,
-}) {
+} & JSX.IntrinsicElements["canvas"]) {
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
     useEffect(() => {
@@ -22,7 +23,10 @@ export const ImageDataDisplay = function ({
     }, [canvasRef, imageData]);
 
     return (
-        <canvas ref={canvasRef} />
+        <canvas
+            ref={canvasRef}
+            {...props}
+        />
     );
 };
 
