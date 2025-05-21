@@ -5,9 +5,11 @@ import {
 } from "@/lib/image_util";
 import sampleImg from "@/lib/sample_screenshot.png";
 import samplePhoto from "@/lib/sample_photo.jpg"
+import { SourceCodeSection } from "@/components/source-code";
+import thisString from ".?raw";
+import { H2, H3, H4 } from "@/components/typography";
 
-
-const getHistogram = function(imageData: ImageData) {
+const getHistogram = function (imageData: ImageData) {
     const res: number[] = [...Array(256).keys()].map((_) => 0);
 
     for (let i = 0; i < imageData.width * imageData.height; i++) {
@@ -75,10 +77,12 @@ const HistogramDisplay = function ({
 
     return (
         <div>
-            <h4>Histogramma</h4>
+            <H4>Histogramma</H4>
             <BarDisplay values={histogram.map((v) => v / histMax)} />
 
-            <h4>Histogramma (f(x) = ln(x+1))</h4>
+            <H4>
+                Histogramma <span className="italic font-light">f(x) = ln(x+1)</span>
+            </H4>
             <BarDisplay values={histogram.map((v) => Math.log(v + 1) / Math.log(histMax + 1))} />
         </div>
     );
@@ -127,25 +131,30 @@ const OneImageAnalysis = function ({
 
     return (
         <div>
-            <h3 className="text-2xl my-4">Oriģinālais attēls</h3>
+            <H3>Oriģinālais attēls</H3>
             <ImageDataDisplay
                 allowResizing={true}
                 imageData={imageData}
             />
 
-            <h3 className="text-2xl my-4">Melnbaltais attēls</h3>
-            <ImageDataDisplay
-                allowResizing={true}
-                imageData={grayscale}
-            />
-            <HistogramDisplay imageData={grayscale} />
+            <H3>Melnbaltais attēls</H3>
+            <div className="w-fit">
+                <ImageDataDisplay
+                    allowResizing={true}
+                    imageData={grayscale}
+                />
+                <HistogramDisplay imageData={grayscale} />
+            </div>
 
-            <h3 className="text-2xl my-4">Normalizētais attēls</h3>
-            <ImageDataDisplay
-                allowResizing={true}
-                imageData={normalizedImageData}
-            />
-            <HistogramDisplay imageData={normalizedImageData} />
+            <H3>Normalizētais attēls</H3>
+
+            <div className="w-fit">
+                <ImageDataDisplay
+                    allowResizing={true}
+                    imageData={normalizedImageData}
+                />
+                <HistogramDisplay imageData={normalizedImageData} />
+            </div>
         </div>
     );
 }
@@ -159,6 +168,14 @@ const ReadyComponent = function ({
 
     return (
         <div>
+            <H2>Uzdevums (9b)</H2>
+
+            <SourceCodeSection
+                sources={[
+                    { title: "./index", contentString: thisString },
+                ]}
+            />
+
             <OneImageAnalysis imageData={screenshot} />
             <OneImageAnalysis imageData={photo} />
         </div>

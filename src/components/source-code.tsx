@@ -5,6 +5,7 @@ import {
 } from "@/components/ui/collapsible";
 import hljs from "highlight.js";
 import "highlight.js/styles/stackoverflow-light.min.css";
+import { H3 } from "./typography";
 
 export const SourceCode = function ({
     title,
@@ -42,7 +43,7 @@ export const SourceCodeSection = function ({
 }) {
     return (
         <>
-            <h3 className="text-2xl my-4">Pirmkods</h3>
+            <H3>Pirmkods</H3>
             {sources.map((props) => (<SourceCode key={props.title} {...props} />))}
         </>
     );
