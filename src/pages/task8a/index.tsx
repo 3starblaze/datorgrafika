@@ -1,3 +1,4 @@
+import { H3, P } from "@/components/typography";
 import {
     AsyncAwareImageDataDisplay,
     ImageDataDisplay,
@@ -99,50 +100,91 @@ const interpolateBilinear = function (
     return res;
 }
 
+type ScaleFn = (imageData: ImageData, newWidth: number, newHeight: number) => ImageData
+
+// NOTE: Assuming a, b already in grayscale
+const meanSquaredDifference = function(a: ImageData, b: ImageData): number {
+    if ((a.width !== b.width) || (a.height !== b.height)) {
+        throw new Error("Can't compute differece between differently-sized")
+    }
+
+    const n = a.width * a.height;
+    let res = 0;
+
+    for (let i = 0; i < n; i++) {
+        const diff = a.data[4 * i] - b.data[4 * i];
+
+        res += diff * diff;
+    }
+
+    return res / n;
+}
+
+const ScaleCaseComponent = function({
+    imageData,
+    scaleFn,
+    upscaleRatio,
+}:{
+    imageData: ImageData,
+    scaleFn: ScaleFn,
+    upscaleRatio: number,
+}) {
+    const {width, height} = imageData;
+
+    const upscaled = scaleFn(
+        imageData,
+        Math.floor(upscaleRatio * width),
+        Math.floor(upscaleRatio * height),
+    );
+    const downscaled = scaleFn(upscaled, width, height);
+
+    const meanSquaredError = meanSquaredDifference(imageData, downscaled);
+
+    return (
+        <div>
+            <ImageDataDisplay imageData={downscaled} />
+            <p>MRE: {meanSquaredError.toFixed(2)}</p>
+        </div>
+    );
+}
+
 const ReadyComponent = function ({
     imageData,
 }: {
     imageData: ImageData,
 }) {
     const grayscale = imageDataToGrayscale(imageData);
-
-    const width = 400;
-    const height = 200;
-
-    const upscaleStyle = {
-        width: 2 * width,
-        height: 2 * height,
-        // NOTE: Force pixelated rendering in order to faithfully demonstrate the results
-        imageRendering: "pixelated",
-    } as const;
-
-    const widthHeightString = `${width}x${height}px`;
+    const upscaleRatio = 1.8;
 
     return (
         <div>
-            <h3 className="text-2xl my-4">Oriģinālais attēls</h3>
+            <H3>Oriģinālais attēls</H3>
             <ImageDataDisplay imageData={imageData} />
 
-            <h3 className="text-2xl my-4">Melnbaltais attēls</h3>
+            <H3>Melnbaltais attēls</H3>
             <ImageDataDisplay imageData={grayscale} />
 
-            <h3 className="text-2xl my-4">Nearest neighbor {widthHeightString}</h3>
-            <ImageDataDisplay
-                style={upscaleStyle}
-                imageData={interpolateNearestNeighbor(
-                    grayscale,
-                    width,
-                    height,
-                )} />
+            <H3>Kā tiek mērīta kvalitāte?</H3>
+            <P>
+                Attēls tiek palielināts {upscaleRatio.toFixed(2)} reizes un samazināts atpakaļ uz
+                oriģinālo izmēru. Lai novērtētu kvalitāti, tiek mērīta vidēja kvadrātiskā kļūda MSE
+                <i> (Mean squared error)</i>, kur jauniegūtā attēla pikseļa vērtības tiek
+                salīdzinātas ar oriģinālā pikseļa vērtībām.
+            </P>
 
-            <h3 className="text-2xl my-4">Bilinear interpolation {widthHeightString}</h3>
-            <ImageDataDisplay
-                style={upscaleStyle}
-                imageData={interpolateBilinear(
-                    grayscale,
-                    width,
-                    height,
-                )} />
+            <H3>Nearest neighbor</H3>
+            <ScaleCaseComponent
+                imageData={grayscale}
+                scaleFn={interpolateNearestNeighbor}
+                upscaleRatio={upscaleRatio}
+            />
+
+            <H3>Bilinear interpolation</H3>
+            <ScaleCaseComponent
+                imageData={grayscale}
+                scaleFn={interpolateBilinear}
+                upscaleRatio={upscaleRatio}
+            />
         </div>
     );
 };
