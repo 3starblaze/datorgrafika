@@ -40,12 +40,15 @@ const RegionInfoDisplay = function({
 
     return (
         <div>
-            <ImageDataDisplay imageData={colorInfoToImageData(
-                imageData,
-                regionsInfo,
-                colorInfo,
-                colors
-            )} />
+            <ImageDataDisplay
+                allowResizing={true}
+                imageData={colorInfoToImageData(
+                    imageData,
+                    regionsInfo,
+                    colorInfo,
+                    colors
+                )}
+            />
             <div>Attēlu reģionu skaits {regionsInfo.regions.size}</div>
             <div>Krāsu skaits: {colorInfo.colorCount}</div>
             <div className="flex gap-2">
@@ -74,10 +77,16 @@ const ReadyComponent = function ({
     return (
         <div>
             <h3 className="text-2xl my-4">Oriģinālais attēls</h3>
-            <ImageDataDisplay imageData={imageData} />
+            <ImageDataDisplay
+                allowResizing={true}
+                imageData={imageData}
+            />
 
             <h3 className="text-2xl my-4">Melnbaltais attēls</h3>
-            <ImageDataDisplay imageData={grayscaleImageData} />
+            <ImageDataDisplay
+                allowResizing={true}
+                imageData={grayscaleImageData}
+            />
 
             <h3 className="text-2xl my-4">Attēls sadalīts reģionos (v1)</h3>
             <RegionInfoDisplay

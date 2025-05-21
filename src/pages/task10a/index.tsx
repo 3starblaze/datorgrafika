@@ -108,16 +108,28 @@ const ReadyComponent = function({
     return (
         <div>
             <h3 className="text-2xl my-4">Oriģinālais attēls</h3>
-            <ImageDataDisplay imageData={imageData} />
+            <ImageDataDisplay
+                allowResizing={true}
+                imageData={imageData}
+            />
 
             <h3 className="text-2xl my-4">Box blur 3 attēls</h3>
-            <ImageDataDisplay imageData={boxBlur3ImageData} />
+            <ImageDataDisplay
+                allowResizing={true}
+                imageData={boxBlur3ImageData}
+            />
 
             <h3 className="text-2xl my-4">Gaussian blur 3 attēls</h3>
-            <ImageDataDisplay imageData={gaussianBlur3ImageData} />
+            <ImageDataDisplay
+                allowResizing={true}
+                imageData={gaussianBlur3ImageData}
+            />
 
             <h3 className="text-2xl my-4">Gaussian blur 5 attēls</h3>
-            <ImageDataDisplay imageData={conv(gaussianBlur5)} />
+            <ImageDataDisplay
+                allowResizing={true}
+                imageData={conv(gaussianBlur5)}
+            />
         </div>
     );
 };

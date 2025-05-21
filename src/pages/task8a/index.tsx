@@ -142,7 +142,10 @@ const ScaleCaseComponent = function({
 
     return (
         <div>
-            <ImageDataDisplay imageData={downscaled} />
+            <ImageDataDisplay
+                allowResizing={true}
+                imageData={downscaled}
+            />
             <p>MRE: {meanSquaredError.toFixed(2)}</p>
         </div>
     );
@@ -159,10 +162,16 @@ const ReadyComponent = function ({
     return (
         <div>
             <H3>Oriģinālais attēls</H3>
-            <ImageDataDisplay imageData={imageData} />
+            <ImageDataDisplay
+                allowResizing={true}
+                imageData={imageData}
+            />
 
             <H3>Melnbaltais attēls</H3>
-            <ImageDataDisplay imageData={grayscale} />
+            <ImageDataDisplay
+                allowResizing={true}
+                imageData={grayscale}
+            />
 
             <H3>Kā tiek mērīta kvalitāte?</H3>
             <P>

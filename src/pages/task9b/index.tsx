@@ -51,7 +51,7 @@ const BarDisplay = function({
     values: number[],
 }) {
     return (
-        <div className="flex bg-gray-100 h-16 w-100">
+        <div className="flex bg-gray-100 h-16 w-full">
             {values.map((value, i) => (
                 <div
                     key={i}
@@ -128,14 +128,23 @@ const OneImageAnalysis = function ({
     return (
         <div>
             <h3 className="text-2xl my-4">Oriģinālais attēls</h3>
-            <ImageDataDisplay imageData={imageData} />
+            <ImageDataDisplay
+                allowResizing={true}
+                imageData={imageData}
+            />
 
             <h3 className="text-2xl my-4">Melnbaltais attēls</h3>
-            <ImageDataDisplay imageData={grayscale} />
+            <ImageDataDisplay
+                allowResizing={true}
+                imageData={grayscale}
+            />
             <HistogramDisplay imageData={grayscale} />
 
             <h3 className="text-2xl my-4">Normalizētais attēls</h3>
-            <ImageDataDisplay imageData={normalizedImageData} />
+            <ImageDataDisplay
+                allowResizing={true}
+                imageData={normalizedImageData}
+            />
             <HistogramDisplay imageData={normalizedImageData} />
         </div>
     );

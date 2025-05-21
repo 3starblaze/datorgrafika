@@ -2,9 +2,11 @@ import { JSX, useEffect, useRef, useState } from "react";
 
 export const ImageDataDisplay = function ({
     imageData,
+    allowResizing = false,
     ...props
 }: {
     imageData: ImageData,
+    allowResizing?: boolean,
 } & JSX.IntrinsicElements["canvas"]) {
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
@@ -24,6 +26,7 @@ export const ImageDataDisplay = function ({
 
     return (
         <canvas
+            className={allowResizing ? "max-w-full" : ""}
             ref={canvasRef}
             {...props}
         />
