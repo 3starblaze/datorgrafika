@@ -1,6 +1,8 @@
+import { H3 } from "@/components/typography";
 import {
     AsyncAwareImageDataDisplay,
     ImageDataDisplay,
+    imageDataToGrayscale,
     mod,
 } from "@/lib/image_util";
 import sampleImg from "@/lib/sample_screenshot.png";
@@ -37,6 +39,38 @@ const gaussianBlur5: Kernel = {
         4, 16, 24, 16, 4,
         1, 4,  6,  4,  1,
     ].map((n) => n / 256),
+};
+
+const identityPosition = function(squareLength: number): number {
+    return Math.floor(Math.floor(squareLength * squareLength / 2));
+}
+
+const identityKernel = function (squareLength: number): Kernel {
+    const idPosition = identityPosition(squareLength);
+
+    return {
+        squareLength,
+        data: [...Array(squareLength * squareLength).keys()]
+            .map((i) => Number(i === idPosition)),
+    };
+};
+
+const sharpUnmask = function(blurKernel: Kernel) {
+    // NOTE: sharp = identity + (identity - blur) * amount
+    const { squareLength } = blurKernel;
+    const res: Kernel = identityKernel(squareLength);
+
+    const amount = 2;
+
+    blurKernel.data.forEach((v, i) => {
+        res.data[i] -= v;
+        res.data[i] *= amount;
+    });
+
+    // NOTE: Add itself
+    res.data[identityPosition(squareLength)] += 1;
+
+    return res;
 };
 
 const isKernelValid = function ({ squareLength, data }: Kernel) {
@@ -95,40 +129,71 @@ const imageDataToConvolvedImageData = function(
     return res;
 };
 
+const CaseComponent = function({
+    title,
+    imageData,
+    blurKernel,
+}: {
+    title: string,
+    imageData: ImageData,
+    blurKernel: Kernel,
+}) {
+    const blurImageData = imageDataToConvolvedImageData(imageData, blurKernel);
+    const sharpImageData = imageDataToConvolvedImageData(imageData, sharpUnmask(blurKernel));
+
+    return (
+        <>
+            <H3>{title} izpludināšana un asināšana</H3>
+            <ImageDataDisplay
+                allowResizing={true}
+                imageData={blurImageData}
+            />
+
+            <ImageDataDisplay
+                allowResizing={true}
+                imageData={sharpImageData}
+            />
+        </>
+    );
+}
+
 const ReadyComponent = function({
     imageData,
 }: {
     imageData: ImageData,
 }) {
-    const conv = (kernel: Kernel) => imageDataToConvolvedImageData(imageData, kernel);
-
-    const boxBlur3ImageData = conv(boxBlur3);
-    const gaussianBlur3ImageData = conv(gaussianBlur3);
+    const grayscale = imageDataToGrayscale(imageData);
 
     return (
         <div>
-            <h3 className="text-2xl my-4">Oriģinālais attēls</h3>
+            <H3>Oriģinālais attēls</H3>
             <ImageDataDisplay
                 allowResizing={true}
                 imageData={imageData}
             />
 
-            <h3 className="text-2xl my-4">Box blur 3 attēls</h3>
+            <H3>Melnbaltais attēls</H3>
             <ImageDataDisplay
                 allowResizing={true}
-                imageData={boxBlur3ImageData}
+                imageData={grayscale}
             />
 
-            <h3 className="text-2xl my-4">Gaussian blur 3 attēls</h3>
-            <ImageDataDisplay
-                allowResizing={true}
-                imageData={gaussianBlur3ImageData}
+            <CaseComponent
+                imageData={grayscale}
+                blurKernel={boxBlur3}
+                title="Box Blur 3"
             />
 
-            <h3 className="text-2xl my-4">Gaussian blur 5 attēls</h3>
-            <ImageDataDisplay
-                allowResizing={true}
-                imageData={conv(gaussianBlur5)}
+            <CaseComponent
+                imageData={grayscale}
+                blurKernel={gaussianBlur3}
+                title="Gaussian Blur 3"
+            />
+
+            <CaseComponent
+                imageData={grayscale}
+                blurKernel={gaussianBlur5}
+                title="Gaussian Blur 5"
             />
         </div>
     );
