@@ -120,6 +120,12 @@ const meanSquaredDifference = function(a: ImageData, b: ImageData): number {
     return res / n;
 }
 
+const calculatePSNR = function(mse: number) {
+    const MAX_VALUE = 255;
+
+    return 20 * Math.log(MAX_VALUE) / Math.log(10) - 10 * Math.log(mse) / Math.log(10);
+};
+
 const ScaleCaseComponent = function({
     imageData,
     scaleFn,
@@ -138,7 +144,8 @@ const ScaleCaseComponent = function({
     );
     const downscaled = scaleFn(upscaled, width, height);
 
-    const meanSquaredError = meanSquaredDifference(imageData, downscaled);
+    const MSE = meanSquaredDifference(imageData, downscaled);
+    const PSNR = calculatePSNR(MSE);
 
     return (
         <div>
@@ -146,7 +153,8 @@ const ScaleCaseComponent = function({
                 allowResizing={true}
                 imageData={downscaled}
             />
-            <p>MRE: {meanSquaredError.toFixed(2)}</p>
+            <p>MSE: {MSE.toFixed(2)}</p>
+            <p>PSNR: {PSNR === Infinity ? (<>&infin;</>) : PSNR.toFixed(2)} dB</p>
         </div>
     );
 }
@@ -176,9 +184,20 @@ const ReadyComponent = function ({
             <H3>Kā tiek mērīta kvalitāte?</H3>
             <P>
                 Attēls tiek palielināts {upscaleRatio.toFixed(2)} reizes un samazināts atpakaļ uz
-                oriģinālo izmēru. Lai novērtētu kvalitāti, tiek mērīta vidēja kvadrātiskā kļūda MSE
-                <i> (Mean squared error)</i>, kur jauniegūtā attēla pikseļa vērtības tiek
-                salīdzinātas ar oriģinālā pikseļa vērtībām.
+                oriģinālo izmēru. Lai novērtētu kvalitāti, tiek izmantotas šādas metrikas:
+                <ul className="ml-4 list-disc">
+                    <li>
+                        MSE (Mean Squared Error) &mdash; vidējā kvadrātiskā kļūda</li>
+                    <li>
+                        <a
+                            className="underline text-blue-500"
+                            href="https://en.wikipedia.org/wiki/Peak_signal-to-noise_ratio"
+                        >
+                            PSNR (Peak signal-to-noise ratio)
+                        </a> &mdash;
+                        attiecība starp lielāko "signāla" vērtību un troksni
+                    </li>
+                </ul>
             </P>
 
             <H3>Nearest neighbor</H3>
