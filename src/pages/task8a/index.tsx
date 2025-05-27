@@ -126,6 +126,51 @@ const calculatePSNR = function(mse: number) {
     return 20 * Math.log(MAX_VALUE) / Math.log(10) - 10 * Math.log(mse) / Math.log(10);
 };
 
+const calculateSSIM = function(a: ImageData, b: ImageData) {
+    let covariance = 0;
+    let varianceA = 0;
+    let varianceB = 0;
+
+    let sumA = 0;
+    let sumB = 0;
+
+    if ((a.width !== b.width) || (a.height !== b.height)) {
+        throw new Error("Can't compute differece between differently-sized")
+    }
+
+    const n = a.width * a.height;
+
+    for (let i = 0; i < n; i++) {
+        sumA += a.data[4 * i];
+        sumB += b.data[4 * i];
+    }
+
+    const meanA = sumA / n;
+    const meanB = sumB / n;
+
+    for (let i = 0; i < n; i++) {
+        const deltaA = meanA - a.data[4 * i];
+        const deltaB = meanB - b.data[4 * i];
+
+        covariance += deltaA * deltaB;
+        varianceA += deltaA * deltaA;
+        varianceB += deltaB * deltaB;
+    }
+
+    covariance /= n;
+    varianceA /= n;
+    varianceB /= n;
+
+    const L = 255;
+    const k1 = 0.01;
+    const k2 = 0.03;
+    const c1 = (k1 * L) * (k1 * L);
+    const c2 = (k2 * L) * (k2 * L);
+
+    return ((2 * meanA * meanB + c1) * (2 * covariance + c2)) /
+        ((meanA * meanA + meanB * meanB + c1) * (varianceA + varianceB + c2));
+};
+
 const ScaleCaseComponent = function({
     imageData,
     scaleFn,
@@ -146,6 +191,9 @@ const ScaleCaseComponent = function({
 
     const MSE = meanSquaredDifference(imageData, downscaled);
     const PSNR = calculatePSNR(MSE);
+    const SSIM = calculateSSIM(imageData, downscaled);
+
+    const format = (val: number) => val.toFixed(3);
 
     return (
         <div>
@@ -153,11 +201,60 @@ const ScaleCaseComponent = function({
                 allowResizing={true}
                 imageData={downscaled}
             />
-            <p>MSE: {MSE.toFixed(2)}</p>
-            <p>PSNR: {PSNR === Infinity ? (<>&infin;</>) : PSNR.toFixed(2)} dB</p>
+            <div className="grid grid-cols-[auto_auto] w-fit gap-x-2">
+                <p className="font-bold">MSE</p>
+                <p>{format(MSE)}</p>
+
+                <p className="font-bold">PSNR</p>
+                <p>{PSNR === Infinity ? (<>&infin;</>) : format(PSNR)} dB</p>
+
+                <p className="font-bold">SSIM</p>
+                <p>{format(SSIM)}</p>
+            </div>
         </div>
     );
 }
+
+const QualityInfo = function ({
+    upscaleRatio,
+}: {
+    upscaleRatio: number,
+}) {
+    return (
+        <>
+            <H3>Kā tiek mērīta kvalitāte?</H3>
+            <P>
+                Attēls tiek palielināts {upscaleRatio.toFixed(2)} reizes un samazināts atpakaļ uz
+                oriģinālo izmēru. Lai novērtētu kvalitāti, tiek izmantotas šādas metrikas:
+                <ul className="ml-4 list-disc">
+                    <li>
+                        MSE (Mean Squared Error) &mdash; vidējā kvadrātiskā kļūda</li>
+                    <li>
+                        <a
+                            className="underline text-blue-500"
+                            href="https://en.wikipedia.org/wiki/Peak_signal-to-noise_ratio"
+                        >
+                            PSNR (Peak signal-to-noise ratio)
+                        </a> &mdash;
+                        attiecība starp lielāko "signāla" vērtību un troksni
+                    </li>
+                    <li>
+                        <a
+                            className="underline text-blue-500"
+                            href="https://en.wikipedia.org/wiki/Structural_similarity_index_measure"
+                        >
+                            SSIM (Structural similarity index measure)
+                        </a>
+                        &mdash;
+                        Korelācijas indekss diapazonā no -1 līdz 1, kur 1 nozīmē perfektu
+                        korelāciju, -1 &mdash; perfektu antikorelāciju un 0 &mdash; nekādu
+                        korelāciju.
+                    </li>
+                </ul>
+            </P>
+        </>
+    );
+};
 
 const ReadyComponent = function ({
     imageData,
@@ -181,24 +278,7 @@ const ReadyComponent = function ({
                 imageData={grayscale}
             />
 
-            <H3>Kā tiek mērīta kvalitāte?</H3>
-            <P>
-                Attēls tiek palielināts {upscaleRatio.toFixed(2)} reizes un samazināts atpakaļ uz
-                oriģinālo izmēru. Lai novērtētu kvalitāti, tiek izmantotas šādas metrikas:
-                <ul className="ml-4 list-disc">
-                    <li>
-                        MSE (Mean Squared Error) &mdash; vidējā kvadrātiskā kļūda</li>
-                    <li>
-                        <a
-                            className="underline text-blue-500"
-                            href="https://en.wikipedia.org/wiki/Peak_signal-to-noise_ratio"
-                        >
-                            PSNR (Peak signal-to-noise ratio)
-                        </a> &mdash;
-                        attiecība starp lielāko "signāla" vērtību un troksni
-                    </li>
-                </ul>
-            </P>
+            <QualityInfo upscaleRatio={upscaleRatio}  />
 
             <H3>Nearest neighbor</H3>
             <ScaleCaseComponent
