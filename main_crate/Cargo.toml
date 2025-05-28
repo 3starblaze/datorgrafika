@@ -1,5 +1,5 @@
 [package]
-name = "main-crate"
+name = "main_crate"
 version = "0.1.0"
 authors = []
 edition = "2018"

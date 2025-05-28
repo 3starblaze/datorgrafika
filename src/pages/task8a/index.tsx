@@ -2,12 +2,14 @@ import { H3, P } from "@/components/typography";
 import {
     AsyncAwareImageDataDisplay,
     ImageDataDisplay,
-    imageDataToGrayscale,
     mod,
 } from "@/lib/image_util";
 import sampleImg from "@/lib/sample_screenshot.png";
-import { useEffect } from "react";
-import initMainCrate, { greet } from "main_crate?wasm";
+import { useEffect, useMemo } from "react";
+import initMainCrate, {
+    ImageData as WasmImageData,
+    apply_grayscale,
+} from "main_crate?wasm";
 
 const interpolateNearestNeighbor = function (
     imageData: ImageData,
@@ -258,20 +260,48 @@ const QualityInfo = function ({
     );
 };
 
+const mainCrateModule = await initMainCrate();
+
 const ReadyComponent = function ({
     imageData,
 }: {
     imageData: ImageData,
 }) {
-    const grayscale = imageDataToGrayscale(imageData);
     const upscaleRatio = 1.8;
+    const grayscale = useMemo(() => {
+        const w = imageData.width;
+        const h = imageData.height;
+        const wasmImageData = WasmImageData.new(w, h);
 
-    useEffect(() => {
-        initMainCrate().then(() => {
-            greet();
-        });
+        const pixelCount = 4 * w * h;
+
+        const ptr = wasmImageData.data();
+
+        const arr = new Uint8ClampedArray(
+            mainCrateModule.memory.buffer,
+            ptr,
+            pixelCount,
+        );
+
+        // NOTE: Copy array into WASM memory
+        for (let i = 0; i < pixelCount; i++) {
+            arr[i] = imageData.data[i];
+        }
+
+        apply_grayscale(wasmImageData);
+
+        // TODO: It would be nice to reuse the WASM memory but things break so we just copy for now.
+        const resArr = new Uint8ClampedArray(pixelCount);
+
+        const imageDataRes = new ImageData(resArr, w, h);
+
+        // NOTE: Copying back
+        for (let i = 0; i < pixelCount; i++) {
+            imageDataRes.data[i] = arr[i];
+        }
+
+        return imageDataRes;
     }, []);
-
 
     return (
         <div>
