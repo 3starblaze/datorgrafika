@@ -6,6 +6,8 @@ import {
     mod,
 } from "@/lib/image_util";
 import sampleImg from "@/lib/sample_screenshot.png";
+import { useEffect } from "react";
+import initMainCrate, { greet } from "main_crate?wasm";
 
 const interpolateNearestNeighbor = function (
     imageData: ImageData,
@@ -263,6 +265,13 @@ const ReadyComponent = function ({
 }) {
     const grayscale = imageDataToGrayscale(imageData);
     const upscaleRatio = 1.8;
+
+    useEffect(() => {
+        initMainCrate().then(() => {
+            greet();
+        });
+    }, []);
+
 
     return (
         <div>
