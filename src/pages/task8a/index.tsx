@@ -10,6 +10,8 @@ import {
     imageDataToWasm,
     wasmToImageData,
     apply_grayscale,
+    apply_lanczos3,
+    test_lanczos3,
 } from "@/lib/crate_util";
 
 const interpolateNearestNeighbor = function (
@@ -176,7 +178,40 @@ const calculateSSIM = function(a: ImageData, b: ImageData) {
         ((meanA * meanA + meanB * meanB + c1) * (varianceA + varianceB + c2));
 };
 
-const ScaleCaseComponent = function({
+const PreprocessedScaleCaseComponent = function({
+    oldImageData,
+    newImageData,
+}: {
+    oldImageData: ImageData,
+    newImageData: ImageData,
+}) {
+    const MSE = meanSquaredDifference(newImageData, oldImageData);
+    const PSNR = calculatePSNR(MSE);
+    const SSIM = calculateSSIM(newImageData, oldImageData);
+
+    const format = (val: number) => val.toFixed(3);
+
+    return (
+        <div>
+            <ImageDataDisplay
+                allowResizing={true}
+                imageData={oldImageData}
+            />
+            <div className="grid grid-cols-[auto_auto] w-fit gap-x-2">
+                <p className="font-bold">MSE</p>
+                <p>{format(MSE)}</p>
+
+                <p className="font-bold">PSNR</p>
+                <p>{PSNR === Infinity ? (<>&infin;</>) : format(PSNR)} dB</p>
+
+                <p className="font-bold">SSIM</p>
+                <p>{format(SSIM)}</p>
+            </div>
+        </div>
+    );
+}
+
+const ScaleCaseComponent = function ({
     imageData,
     scaleFn,
     upscaleRatio,
@@ -194,29 +229,11 @@ const ScaleCaseComponent = function({
     );
     const downscaled = scaleFn(upscaled, width, height);
 
-    const MSE = meanSquaredDifference(imageData, downscaled);
-    const PSNR = calculatePSNR(MSE);
-    const SSIM = calculateSSIM(imageData, downscaled);
-
-    const format = (val: number) => val.toFixed(3);
-
     return (
-        <div>
-            <ImageDataDisplay
-                allowResizing={true}
-                imageData={downscaled}
-            />
-            <div className="grid grid-cols-[auto_auto] w-fit gap-x-2">
-                <p className="font-bold">MSE</p>
-                <p>{format(MSE)}</p>
-
-                <p className="font-bold">PSNR</p>
-                <p>{PSNR === Infinity ? (<>&infin;</>) : format(PSNR)} dB</p>
-
-                <p className="font-bold">SSIM</p>
-                <p>{format(SSIM)}</p>
-            </div>
-        </div>
+        <PreprocessedScaleCaseComponent
+            oldImageData={imageData}
+            newImageData={downscaled}
+        />
     );
 }
 
@@ -275,6 +292,18 @@ const ReadyComponent = function ({
         return wasmToImageData(wasmImageData);
     }, []);
 
+    const lanczos3Data = useMemo(() => {
+        const wasmImageData = imageDataToWasm(imageData);
+
+        apply_grayscale(wasmImageData);
+        const newImageData = test_lanczos3(wasmImageData, upscaleRatio);
+
+        const res = wasmToImageData(newImageData);
+        console.log({ res });
+
+        return res;
+    }, []);
+
     return (
         <div>
             <H3>Oriģinālais attēls</H3>
@@ -289,7 +318,7 @@ const ReadyComponent = function ({
                 imageData={grayscale}
             />
 
-            <QualityInfo upscaleRatio={upscaleRatio}  />
+            <QualityInfo upscaleRatio={upscaleRatio} />
 
             <H3>Nearest neighbor</H3>
             <ScaleCaseComponent
@@ -303,6 +332,12 @@ const ReadyComponent = function ({
                 imageData={grayscale}
                 scaleFn={interpolateBilinear}
                 upscaleRatio={upscaleRatio}
+            />
+
+            <H3>Lanczos3</H3>
+            <PreprocessedScaleCaseComponent
+                oldImageData={grayscale}
+                newImageData={lanczos3Data}
             />
         </div>
     );
