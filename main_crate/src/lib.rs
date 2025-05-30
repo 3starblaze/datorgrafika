@@ -1,4 +1,4 @@
-use image::{imageops::resize, ImageBuffer, Rgba};
+use image::{imageops::{resize, FilterType}, ImageBuffer, Rgba};
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
@@ -72,9 +72,12 @@ pub fn apply_grayscale(image_data: &mut ImageData) -> () {
     }
 }
 
-
-#[wasm_bindgen]
-pub fn apply_lanczos3(image_data: &ImageData, new_width: u32, new_height: u32) -> ImageData {
+pub fn apply_resizing(
+    image_data: &ImageData,
+    new_width: u32,
+    new_height: u32,
+    filter_type: FilterType,
+) -> ImageData {
     let width = image_data.width as u32;
     let height = image_data.height as u32;
     let data = image_data.data.as_slice();
@@ -84,7 +87,7 @@ pub fn apply_lanczos3(image_data: &ImageData, new_width: u32, new_height: u32) -
         &img,
         new_width,
         new_height,
-        image::imageops::FilterType::Lanczos3
+        filter_type,
     );
 
     ImageData {
@@ -94,16 +97,40 @@ pub fn apply_lanczos3(image_data: &ImageData, new_width: u32, new_height: u32) -
     }
 }
 
-#[wasm_bindgen]
-pub fn test_lanczos3(image_data: &ImageData, ratio: f32) -> ImageData {
+pub fn test_resizing(
+    image_data: &ImageData,
+    ratio: f32,
+    filter_type: FilterType,
+) -> ImageData {
     let width = image_data.width as u32;
     let height = image_data.height as u32;
 
     let upscale_width = (width as f32 * ratio).floor() as u32;
     let upscale_height = (height as f32 * ratio).floor() as u32;
 
-    let upscaled = apply_lanczos3(image_data, upscale_width, upscale_height);
-    let downscaled = apply_lanczos3(&upscaled, width, height);
+    let upscaled = apply_resizing(image_data, upscale_width, upscale_height, filter_type);
+    let downscaled = apply_resizing(&upscaled, width, height, filter_type);
 
     return downscaled;
+}
+
+#[wasm_bindgen]
+pub fn test_lanczos3(image_data: &ImageData, ratio: f32) -> ImageData {
+    return test_resizing(image_data, ratio, FilterType::Lanczos3);
+}
+
+
+#[wasm_bindgen]
+pub fn test_catmull_rom(image_data: &ImageData, ratio: f32) -> ImageData {
+    return test_resizing(image_data, ratio, FilterType::CatmullRom);
+}
+
+#[wasm_bindgen]
+pub fn test_gaussian(image_data: &ImageData, ratio: f32) -> ImageData {
+    return test_resizing(image_data, ratio, FilterType::Gaussian);
+}
+
+#[wasm_bindgen]
+pub fn test_triangle(image_data: &ImageData, ratio: f32) -> ImageData {
+    return test_resizing(image_data, ratio, FilterType::Triangle);
 }

@@ -12,6 +12,9 @@ import {
     apply_grayscale,
     apply_lanczos3,
     test_lanczos3,
+    test_catmull_rom,
+    test_gaussian,
+    test_triangle,
 } from "@/lib/crate_util";
 
 const interpolateNearestNeighbor = function (
@@ -284,24 +287,36 @@ const ReadyComponent = function ({
     imageData: ImageData,
 }) {
     const upscaleRatio = 1.8;
-    const grayscale = useMemo(() => {
+    const grayscaleWasm = useMemo(() => {
         const wasmImageData = imageDataToWasm(imageData);
 
         apply_grayscale(wasmImageData);
 
-        return wasmToImageData(wasmImageData);
+        return wasmImageData;
     }, []);
 
-    const lanczos3Data = useMemo(() => {
-        const wasmImageData = imageDataToWasm(imageData);
+    const grayscale = useMemo(() => {
+        return wasmToImageData(grayscaleWasm);
+    }, [grayscaleWasm]);
 
-        apply_grayscale(wasmImageData);
-        const newImageData = test_lanczos3(wasmImageData, upscaleRatio);
+    const lanczos3Data = useMemo(() => {
+        const newImageData = test_lanczos3(grayscaleWasm, upscaleRatio);
 
         const res = wasmToImageData(newImageData);
-        console.log({ res });
 
         return res;
+    }, []);
+
+    const catmullRomData = useMemo(() => {
+        return wasmToImageData(test_catmull_rom(grayscaleWasm, upscaleRatio));
+    }, []);
+
+    const gaussianData = useMemo(() => {
+        return wasmToImageData(test_gaussian(grayscaleWasm, upscaleRatio));
+    }, []);
+
+    const triangleData = useMemo(() => {
+        return wasmToImageData(test_triangle(grayscaleWasm, upscaleRatio));
     }, []);
 
     return (
@@ -338,6 +353,24 @@ const ReadyComponent = function ({
             <PreprocessedScaleCaseComponent
                 oldImageData={grayscale}
                 newImageData={lanczos3Data}
+            />
+
+            <H3>Catmull-Rom</H3>
+            <PreprocessedScaleCaseComponent
+                oldImageData={grayscale}
+                newImageData={catmullRomData}
+            />
+
+            <H3>Gaussian</H3>
+            <PreprocessedScaleCaseComponent
+                oldImageData={grayscale}
+                newImageData={gaussianData}
+            />
+
+            <H3>Triangle</H3>
+            <PreprocessedScaleCaseComponent
+                oldImageData={grayscale}
+                newImageData={triangleData}
             />
         </div>
     );
