@@ -133,7 +133,7 @@ const RegionInfoDisplay = function ({
                 <div>{regionsInfo.regions.size}</div>
 
                 <div className="font-bold">Top 10 reģionu izmēri</div>
-                <div className="flex gap-2">
+                <div className="flex gap-x-2 flex-wrap">
                     {regionsInDescendingSizeOrder.slice(0, 10).map((region) => (
                         <button
                             key={region.id}
