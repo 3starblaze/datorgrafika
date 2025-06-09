@@ -15,9 +15,12 @@ import {
     rgbStringToTuple,
 } from "./util";
 import { useEffect } from "react";
-import { H3, P } from "@/components/typography";
+import { H2, H3, P } from "@/components/typography";
+import { SourceCodeSection } from "@/components/source-code";
+import thisString from ".?raw";
+import utilString from "./util?raw";
 
-const RegionInfoDisplay = function({
+const RegionInfoDisplay = function ({
     imageData,
     regionsInfo,
 }: {
@@ -101,7 +104,7 @@ const ReadyComponent = function ({
     } = mergeUntilNoChange(growOnlyRegionsInfo);
 
     return (
-        <div>
+        <>
             <H3>Oriģinālais attēls</H3>
             <ImageDataDisplay
                 allowResizing={true}
@@ -129,16 +132,51 @@ const ReadyComponent = function ({
                 imageData={grayscaleImageData}
                 regionsInfo={fullyMergedRegionsInfo}
             />
-        </div>
+        </>
     );
 };
 
 export default function () {
     return (
-        <AsyncAwareImageDataDisplay
-            imgUrl={sampleImg}
-            PlaceholderComponent={() => (<p>Lūdzu uzgaidiet</p>)}
-            ReadyComponent={ReadyComponent}
-        />
+        <div>
+            <H2>Uzdevums (11a)</H2>
+
+            <SourceCodeSection
+                sources={[
+                    { title: "./index", contentString: thisString },
+                    { title: "./util", contentString: utilString },
+                ]}
+            />
+
+            <H3>Apraksts</H3>
+
+            <P>
+                Reģiona atrašana no sākuma tika veikta ar pikseļu audzēšanu, kur pikseļa
+                pievienošana reģionam tika noteikta ar predikātu. Lai mazinātu sašķeltību, tika
+                veikta sapludināšana pār audzētajiem pikseļiem ar to pašu predikātu. Reģioni tika
+                sadalīti "novados" un pēc tam katrs novads palika par vienu jaunu reģionu.
+                Pludināšana tiek atkārtota tiktāl līdz reģionu skaits pirms un pēc pludināšanas soļa
+                ir nemainīgs.
+            </P>
+
+            <P>
+                Reģiona informācijas uzturēšana tika realizēta ar grafu ar kaimiņu sarakstiem, kā
+                arī tika uzturēts kartējums no pikseļa uz reģionu, lai ātri varētu iegūt reģionu,
+                kuram pieder dotais pikselis.
+            </P>
+
+            <P>
+                Lai demonstrētu reģionus, tika pielietots mantkārīgais (greedy) krāsošanas
+                algoritms, lai katram reģionam nevajadzētu izmantot savu krāsu, kas varētu
+                padarīt reģionu atšķiršanu problemātisku. Kad reģioniem ir piešķirtas krāsas,
+                tiek izveidots jauns attēla buferis, kas ir attiecīgi izkrāsots.
+            </P>
+
+            <AsyncAwareImageDataDisplay
+                imgUrl={sampleImg}
+                PlaceholderComponent={() => (<p className="text-gray-500">Lūdzu uzgaidiet</p>)}
+                ReadyComponent={ReadyComponent}
+            />
+        </div>
     );
 };
