@@ -1,4 +1,4 @@
-import { H3 } from "@/components/typography";
+import { H2, H3, P } from "@/components/typography";
 import {
     AsyncAwareImageDataDisplay,
     ImageDataDisplay,
@@ -6,6 +6,8 @@ import {
     mod,
 } from "@/lib/image_util";
 import sampleImg from "@/lib/sample_screenshot.png";
+import thisString from ".?raw";
+import { SourceCodeSection } from "@/components/source-code";
 
 type Kernel = {
     squareLength: number,
@@ -165,7 +167,7 @@ const ReadyComponent = function({
     const grayscale = imageDataToGrayscale(imageData);
 
     return (
-        <div>
+        <>
             <H3>Oriģinālais attēls</H3>
             <ImageDataDisplay
                 allowResizing={true}
@@ -195,17 +197,36 @@ const ReadyComponent = function({
                 blurKernel={gaussianBlur5}
                 title="Gaussian Blur 5"
             />
-        </div>
+        </>
     );
 };
 
 
 export default function () {
     return (
-        <AsyncAwareImageDataDisplay
-            imgUrl={sampleImg}
-            PlaceholderComponent={() => (<p>Lūdzu uzgaidiet</p>)}
-            ReadyComponent={ReadyComponent}
-        />
+        <div>
+            <H2>Uzdevums (10a)</H2>
+
+            <SourceCodeSection
+                sources={[
+                    { title: "./index", contentString: thisString },
+                ]}
+            />
+
+            <H3>Apraksts</H3>
+
+            <P>
+                No sākuma tika atlasīti izpludināšanas filtri un pēc tam asināšanas filtrs tikai
+                izveidots izmantojot asināšanas filtra definīciju <i>
+                    identitāte + (identitāte - izpludināts) * daudzums
+                </i>.
+            </P>
+
+            <AsyncAwareImageDataDisplay
+                imgUrl={sampleImg}
+                PlaceholderComponent={() => (<p className="text-gray-500">Lūdzu uzgaidiet</p>)}
+                ReadyComponent={ReadyComponent}
+            />
+        </div>
     );
 };
