@@ -312,6 +312,7 @@ export const mutableMergeRegionsMultiple = function (
             const neighborAdjacency = throwingMapGet(regionsInfo.regionAdjacencyList, neighbor);
             neighborAdjacency.delete(id);
             neighborAdjacency.add(destinationRegionId);
+            destinationRegionAdjacenyList.add(neighbor);
         });
 
         regionsInfo.regionAdjacencyList.delete(id);
@@ -477,6 +478,12 @@ export const regionsInfoSanityCheck = function(
                 if (!availableIds.has(id)) {
                     errors.push(`dangling id at this.regionAdjacencyList.get(${k}).has(${id})`);
                 }
+
+                const idAdjacencyList = throwingMapGet(regionsInfo.regionAdjacencyList, id);
+                if (!idAdjacencyList.has(k)) {
+                    errors.push(`neighbor not bidirectional: ${k}->${id} but not vice versa!`);
+                }
+
             }
         }
     }

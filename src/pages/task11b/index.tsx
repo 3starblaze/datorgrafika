@@ -15,6 +15,7 @@ import {
     rgbStringToTuple,
 } from "./util";
 import { useEffect } from "react";
+import { H3, P } from "@/components/typography";
 
 const RegionInfoDisplay = function({
     imageData,
@@ -65,6 +66,27 @@ const RegionInfoDisplay = function({
     );
 };
 
+const mergeUntilNoChange = function(regionsInfo: RegionsInfo) {
+    const regionCountHistory: number[] = [];
+
+    let currentRegionsInfo = performMergePass(regionsInfo);
+
+    regionCountHistory.push(currentRegionsInfo.regions.size);
+
+    while (true) {
+        currentRegionsInfo = performMergePass(currentRegionsInfo);
+
+        const currentSize = currentRegionsInfo.regions.size;
+        if (currentSize === regionCountHistory[regionCountHistory.length - 1]) break;
+        regionCountHistory.push(currentSize);
+    }
+
+    return {
+        regionCountHistory,
+        regionsInfo: currentRegionsInfo,
+    };
+};
+
 const ReadyComponent = function ({
     imageData,
 }: {
@@ -72,32 +94,40 @@ const ReadyComponent = function ({
 }) {
     const grayscaleImageData = imageDataToGrayscale(imageData);
     const growOnlyRegionsInfo = findRegions(grayscaleImageData);
-    const growOnlyRegionsInfoWithMergePass = performMergePass(growOnlyRegionsInfo);
+
+    const {
+        regionCountHistory,
+        regionsInfo: fullyMergedRegionsInfo,
+    } = mergeUntilNoChange(growOnlyRegionsInfo);
 
     return (
         <div>
-            <h3 className="text-2xl my-4">Oriģinālais attēls</h3>
+            <H3>Oriģinālais attēls</H3>
             <ImageDataDisplay
                 allowResizing={true}
                 imageData={imageData}
             />
 
-            <h3 className="text-2xl my-4">Melnbaltais attēls</h3>
+            <H3>Melnbaltais attēls</H3>
             <ImageDataDisplay
                 allowResizing={true}
                 imageData={grayscaleImageData}
             />
 
-            <h3 className="text-2xl my-4">Attēls sadalīts reģionos (v1)</h3>
+            <H3>Attēls sadalīts reģionos izmantojot pikseļu audzēšanu</H3>
             <RegionInfoDisplay
                 imageData={grayscaleImageData}
                 regionsInfo={growOnlyRegionsInfo}
             />
 
-            <h3 className="text-2xl my-4">Attēls sadalīts reģionos (v2)</h3>
+            <H3>Attēls sadalīts reģionos ar pludināšanu</H3>
+            <P className="text-gray-600">
+                Attēla reģioni tikai sapludināti {regionCountHistory.length} reizes un reģionu
+                skaits attiecīgi bija {JSON.stringify(regionCountHistory)}
+            </P>
             <RegionInfoDisplay
                 imageData={grayscaleImageData}
-                regionsInfo={growOnlyRegionsInfoWithMergePass}
+                regionsInfo={fullyMergedRegionsInfo}
             />
         </div>
     );
