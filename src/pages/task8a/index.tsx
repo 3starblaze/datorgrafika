@@ -1,4 +1,4 @@
-import { H3, P } from "@/components/typography";
+import { H2, H3, P } from "@/components/typography";
 import {
     AsyncAwareImageDataDisplay,
     ImageDataDisplay,
@@ -16,6 +16,12 @@ import {
     test_gaussian,
     test_triangle,
 } from "@/lib/crate_util";
+
+import { SourceCodeSection } from "@/components/source-code";
+
+import thisString from ".?raw";
+import crateUtilString from "@/lib/crate_util?raw";
+import crateLibString from "@/../main_crate/src/lib.rs?raw";
 
 const interpolateNearestNeighbor = function (
     imageData: ImageData,
@@ -321,6 +327,35 @@ const ReadyComponent = function ({
 
     return (
         <div>
+            <H2>Uzdevums (8a)</H2>
+
+            <SourceCodeSection
+                sources={[
+                    { title: "./index", contentString: thisString },
+                    { title: "@/lib/crate_util", contentString: crateUtilString },
+                    { title: "@/../main_crate/src/lib.rs", contentString: crateLibString },
+                ]}
+            />
+
+            <H3>Apraksts</H3>
+
+            <P>
+                Lai iztestētu attēlu transformācijas, tika izmantots <i>image::imageops</i>,
+                kas ir pieejams uz <i>Rust</i> programmēšanas valodas. Lai Rust izmantotu priekšgalā
+                (frontend), Rust kods tika kompilēts uz <i>WASM</i>. Tika izveidota papildus
+                funkcionalitāte, lai WASM modulis spētu piekļūt un apstrādāt attēla datus.
+            </P>
+
+            <P>
+                Ideālajā gadījumā šī funkcionalitāte būtu aizstumta prom no galvenā pavediena, bet
+                koordinēt WASM moduļa atmiņu nebija triviāli un galu galā darbība notiek tikai uz
+                galvenā pavediena. Īsumā, ja buferi grib izmantot cits pavediens un bufera kopēšana
+                nav pieņemama opcija, tad buferi vajag atdot (<i>transfer</i>) pavedienam. Lai WASM
+                modulis spētu veikt savu darbu, datiem jābūt WASM moduļa atmiņā (kas ir buferis).
+                Tātad vajag koordinēt WASM moduļa atmiņas nodošanu. Tas nav sarežģīti, bet ir
+                laikietilpīgi.
+            </P>
+
             <H3>Oriģinālais attēls</H3>
             <ImageDataDisplay
                 allowResizing={true}
