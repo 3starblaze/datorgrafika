@@ -14,11 +14,23 @@ import {
     regionsInfoSanityCheck,
     rgbStringToTuple,
 } from "./util";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { H2, H3, P } from "@/components/typography";
 import { SourceCodeSection } from "@/components/source-code";
 import thisString from ".?raw";
 import utilString from "./util?raw";
+
+const median = function(sortedArr: number[]) {
+    if (sortedArr.length === 0) throw new Error("no median for 0-size array!");
+
+    const halfI = Math.floor(sortedArr.length / 2);
+
+    if (sortedArr.length % 2 === 0) {
+        return (sortedArr[halfI] + sortedArr[halfI - 1]) / 2;
+    } else {
+        return sortedArr[halfI];
+    }
+}
 
 const RegionInfoDisplay = function ({
     imageData,
@@ -42,28 +54,54 @@ const RegionInfoDisplay = function ({
     ];
     const colors: [number, number, number][] = colorStrings.map(rgbStringToTuple);
 
+    const regionSizesDesc = useMemo(() => {
+        const res = [...regionsInfo.regions.values()].map((r) => r.pixels.size);
+        // NOTE: sort by int, descending
+        res.sort((a, b) => b - a);
+
+        return res;
+    }, []);
+
     return (
-        <div>
-            <ImageDataDisplay
-                allowResizing={true}
-                imageData={colorInfoToImageData(
-                    imageData,
-                    regionsInfo,
-                    colorInfo,
-                    colors
-                )}
-            />
-            <div>Attēlu reģionu skaits {regionsInfo.regions.size}</div>
-            <div>Krāsu skaits: {colorInfo.colorCount}</div>
-            <div className="flex gap-2">
-                {colorStrings.slice(0, colorInfo.colorCount).map((rgbString) => (
-                    <div
-                        className="h-8 w-8"
-                        style={{
-                            backgroundColor: rgbString,
-                        }}
-                    />
-                ))}
+        <div className="flex flex-col gap-4">
+            <div>
+                <ImageDataDisplay
+                    allowResizing={true}
+                    imageData={colorInfoToImageData(
+                        imageData,
+                        regionsInfo,
+                        colorInfo,
+                        colors
+                    )}
+                />
+            </div>
+            <div className="grid grid-cols-[auto_auto] w-fit gap-x-2">
+                <div className="col-span-2 font-bold text-lg">Reģionu statistika</div>
+
+                <div className="font-bold">Attēlu reģionu skaits</div>
+                <div>{regionsInfo.regions.size}</div>
+
+                <div className="font-bold">Top 10 reģionu izmēri</div>
+                <div>{regionSizesDesc.slice(0, 10).join(", ")}</div>
+
+                <div className="font-bold">Reģionu izmēru mediāna</div>
+                <div>{median(regionSizesDesc)}</div>
+            </div>
+
+            <div className="flex gap-4 items-center">
+                <div>
+                    Krāsas ({colorInfo.colorCount})
+                </div>
+                <div className="flex gap-2">
+                    {colorStrings.slice(0, colorInfo.colorCount).map((rgbString) => (
+                        <div
+                            className="h-8 w-8"
+                            style={{
+                                backgroundColor: rgbString,
+                            }}
+                        />
+                    ))}
+                </div>
             </div>
         </div>
     );
@@ -139,7 +177,7 @@ const ReadyComponent = function ({
 export default function () {
     return (
         <div>
-            <H2>Uzdevums (11a)</H2>
+            <H2>Uzdevums (11b)</H2>
 
             <SourceCodeSection
                 sources={[
