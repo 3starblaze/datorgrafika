@@ -304,6 +304,16 @@ export const mutableMergeRegionsMultiple = function (
     // NOTE: Remove stale regions
     oldRegionIds.forEach((id) => {
         regionsInfo.regions.delete(id);
+
+        const affectedNeighbors = throwingMapGet(regionsInfo.regionAdjacencyList, id);
+
+        // NOTE: Update adjacency lists of affected neighbors
+        affectedNeighbors.forEach((neighbor) => {
+            const neighborAdjacency = throwingMapGet(regionsInfo.regionAdjacencyList, neighbor);
+            neighborAdjacency.delete(id);
+            neighborAdjacency.add(destinationRegionId);
+        });
+
         regionsInfo.regionAdjacencyList.delete(id);
         destinationRegionAdjacenyList.delete(id);
     });
