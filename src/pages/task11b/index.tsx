@@ -14,11 +14,12 @@ import {
     regionsInfoSanityCheck,
     rgbStringToTuple,
 } from "./util";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { H2, H3, P } from "@/components/typography";
 import { SourceCodeSection } from "@/components/source-code";
 import thisString from ".?raw";
 import utilString from "./util?raw";
+import { cn } from "@/lib/utils";
 
 const median = function(sortedArr: number[]) {
     if (sortedArr.length === 0) throw new Error("no median for 0-size array!");
@@ -54,27 +55,77 @@ const RegionInfoDisplay = function ({
     ];
     const colors: [number, number, number][] = colorStrings.map(rgbStringToTuple);
 
-    const regionSizesDesc = useMemo(() => {
-        const res = [...regionsInfo.regions.values()].map((r) => r.pixels.size);
+    const regionsInDescendingSizeOrder = useMemo(() => {
+        const res = [...regionsInfo.regions.values()];
         // NOTE: sort by int, descending
-        res.sort((a, b) => b - a);
+        res.sort((a, b) => b.pixels.size - a.pixels.size);
 
         return res;
     }, []);
 
+    const [focusedRegionId, setFocusedRegionId] = useState<number | null>(null);
+
+    const focusCanvasImageData = useMemo<ImageData>(() => {
+        const res = new ImageData(imageData.width, imageData.height);
+
+        if (focusedRegionId === null) return res;
+
+        const region = regionsInfo.regions.get(focusedRegionId);
+        if (!region) return res;
+
+        region.pixels.forEach((pixel) => {
+            const i = 4 * pixel;
+            // NOTE: Set the pixel to some opaque color
+            res.data[i + 0] = 0xff;
+            res.data[i + 1] = 0x00;
+            res.data[i + 2] = 0xff;
+            res.data[i + 3] = 0xff;
+        });
+
+        return res;
+    }, [imageData, regionsInfo, focusedRegionId]);
+
     return (
         <div className="flex flex-col gap-4">
-            <div>
-                <ImageDataDisplay
-                    allowResizing={true}
-                    imageData={colorInfoToImageData(
-                        imageData,
-                        regionsInfo,
-                        colorInfo,
-                        colors
-                    )}
-                />
+            <div className="relative">
+                <div className="absolute z-10">
+                    <ImageDataDisplay
+                        allowResizing={true}
+                        imageData={focusCanvasImageData}
+                    />
+                </div>
+                <div className={cn(
+                    (focusedRegionId !== null) && "brightness-50",
+                )}>
+                    <ImageDataDisplay
+                        allowResizing={true}
+                        imageData={colorInfoToImageData(
+                            imageData,
+                            regionsInfo,
+                            colorInfo,
+                            colors
+                        )}
+                    />
+                </div>
             </div>
+
+
+            <div>
+                {(focusedRegionId === null) ? (
+                    <p>Neviens reģions nav fokusēts</p>
+                ) : (
+                    <div className="flex gap-2">
+                        <p>Fokuss uz reģionu {focusedRegionId}</p>
+                        <button
+                            className="underline cursor-pointer"
+                            onClick={() => setFocusedRegionId(null)}
+                        >
+                            noņemt fokusu
+                        </button>
+                    </div>
+                )}
+            </div>
+
             <div className="grid grid-cols-[auto_auto] w-fit gap-x-2">
                 <div className="col-span-2 font-bold text-lg">Reģionu statistika</div>
 
@@ -82,10 +133,22 @@ const RegionInfoDisplay = function ({
                 <div>{regionsInfo.regions.size}</div>
 
                 <div className="font-bold">Top 10 reģionu izmēri</div>
-                <div>{regionSizesDesc.slice(0, 10).join(", ")}</div>
+                <div className="flex gap-2">
+                    {regionsInDescendingSizeOrder.slice(0, 10).map((region) => (
+                        <button
+                            key={region.id}
+                            onClick={() => setFocusedRegionId(region.id)}
+                            className="underline cursor-pointer"
+                        >
+                            {region.pixels.size}
+                        </button>
+                    ))}
+                </div>
 
                 <div className="font-bold">Reģionu izmēru mediāna</div>
-                <div>{median(regionSizesDesc)}</div>
+                <div>
+                    {median(regionsInDescendingSizeOrder.map((region) => region.pixels.size))}
+                </div>
             </div>
 
             <div className="flex gap-4 items-center">
